@@ -1,27 +1,31 @@
 package com.teamloop.ncumis.loop;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
 import java.util.LinkedList;
 
-public class ScoreActivity extends ActionBarActivity {
+public class ScoreActivity extends Activity {
 
     public static final String TAG = "scoreActivity";
-    TextView monitorLabel;
+    //TextView monitorLabel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate()");
+        Log.d(TAG, "ScoreActivity onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.score_layout);
 
-        monitorLabel = (TextView)findViewById(R.id.monitorLabel);
+        //monitorLabel = (TextView)findViewById(R.id.monitorLabel);
         Intent it = getIntent();
         showScore(it);
     }
@@ -52,7 +56,7 @@ public class ScoreActivity extends ActionBarActivity {
         Log.d(TAG,"show the Score.");
 
         int nodeNum = it.getIntExtra("nodeNum", 0);
-        Log.d(TAG,"recording Result size is :"+nodeNum);
+        Log.d(TAG, "recording Result size is :" + nodeNum);
 
         for(int num=0; num < nodeNum; num++)
         {
@@ -62,13 +66,51 @@ public class ScoreActivity extends ActionBarActivity {
             String key = node[1];
             String time = node[2];
             Log.d(TAG, message);
-            monitorLabel.append(String.format("%-5s%s%5s\t",pitch,key,time));
+            //monitorLabel.append(String.format("%-5s%s%5s\t",pitch,key,time));
             if( (num%3) == 2) {
                 Log.d(TAG,"\n");
-                monitorLabel.append("\n");
+                //monitorLabel.append("\n");
             }
         }
 
+    }
+
+    // 處理如何關閉程式
+    /*public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
+
+            confirmExit(); //呼叫confirmExit()函數
+
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }*/
+
+    public void confirmExit(){
+        AlertDialog.Builder dialog = new AlertDialog.Builder(ScoreActivity.this); //創建訊息方塊
+
+        dialog.setTitle("離開");
+        dialog.setMessage("確定要離開?");
+        dialog.setPositiveButton("是", new DialogInterface.OnClickListener() { //按"是",則退出應用程式
+
+            public void onClick(DialogInterface dialog, int i) {
+
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+
+        });
+
+        dialog.setNegativeButton("否", new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+
+            public void onClick(DialogInterface dialog, int i) {
+
+            }
+
+        });
+
+        dialog.show();//顯示訊息視窗
     }
 
 }
