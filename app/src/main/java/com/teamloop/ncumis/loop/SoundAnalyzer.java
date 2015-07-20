@@ -6,14 +6,11 @@ import android.media.MediaRecorder;
 import android.util.Log;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.Observable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.teamloop.ncumis.loop.SoundAnalyzer.AnalyzedSound.ReadingType;
 
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
@@ -49,6 +46,9 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
     private int wavelengths;
     private double [] wavelength;
     private int elementsRead = 0;
+
+
+    LinkedList noteList = new LinkedList();
 
 
     private boolean shouldAudioReaderThreadDie;
@@ -135,12 +135,12 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
         fft_method = new DoubleFFT_1D(audioDataSize);
     }
 
-    Long initTime;
+    public Long initTime;
     public void start() { // onStart
         audioRecord.startRecording();
         startAudioReaderThread();
-        Date date1=new Date();
-        initTime = (date1.getTime() / 1000);
+
+        initTime = System.currentTimeMillis();
     }
 
 
@@ -198,7 +198,7 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
 
     @Override
     public void onMarkerReached(AudioRecord recorder) {
-        Log.e(TAG, "This should never heppen - check AudioRecorded set up (notifications).");
+        Log.e(TAG, "This should never happen - check AudioRecorded set up (notifications).");
         // This should never happen.
     }
 
@@ -345,7 +345,7 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
         return Math.sqrt(variance);
     }
 
-    void removeFalseSamples() {
+    public void removeFalseSamples() {
         int samplesToBeIgnored =
                 (int)(PercentOfWaveLengthSamplesToBeIgnored*wavelengths);
         if(wavelengths <=2) return;
@@ -364,6 +364,9 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
     }
 
     public AnalyzedSound getFrequency() {
+
+        boolean haveSound = false;
+
         elementsRead =
                 audioData.getElements(audioDataAnalysis,0,audioDataSize);
         double loudness = 0.0;
@@ -373,6 +376,7 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
         // Check loudness first - it's root of all evil.
         if(loudness<loudnessThreshold)
             return new AnalyzedSound(loudness, AnalyzedSound.ReadingType.TOO_QUIET);
+
 
         computeAutocorrelation();
 
@@ -393,13 +397,25 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
                 maximum = audioDataAnalysis[i];
             }
         }
-        if(wavelengths <2)
+        if(wavelengths < 2)      // 若收不到音，視為休止符。
+        {
+            /*long nowTime = System.currentTimeMillis();
+            long deltaTime = nowTime - initTime;
+            String timeMessage = ""+deltaTime;
+            Log.d(TAG, "quiet recording,  time = " + timeMessage);
+            initTime = nowTime;*/
+
+            noteList.add("pause");
+
             return new AnalyzedSound(loudness, AnalyzedSound.ReadingType.ZERO_SAMPLES);
+        }
+
 
         removeFalseSamples();
 
         double mean = getMeanWavelength(), stdv=getStDevOnWavelength();
 
+        // 單音頻率 = 採樣頻率除以平均波長
         double calculatedFrequency = (double)AUDIO_SAMPLING_RATE/mean;
 
         // Log.d(TAG, "MEAN: " + mean + " STDV: " + stdv);
@@ -416,30 +432,26 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
 
     }   // end method getFrequency
 
-    LinkedList list = new LinkedList();
 
     public void setFrequencyMessage(double frequencyMessage)
     {
-        DecimalFormat df = new DecimalFormat("##.00");
+        /*DecimalFormat df = new DecimalFormat("##.00");
         frequencyMessage = Double.parseDouble(df.format(frequencyMessage));
 
-        Date date2 = new Date();
-        //SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Long time = date2.getTime();
-        time = (time - initTime)/1000;
+        long nowTime = System.currentTimeMillis();
+        long deltaTime = nowTime - initTime;    // 毫秒
 
-        SimpleDateFormat sdf = new SimpleDateFormat("ss");
-        String timeMessage = sdf.format(time);
-        Log.d(TAG,"new recording node time : "+time);
+        String timeMessage = ""+(deltaTime);    // 轉換為秒數 (String型態)
+        initTime = nowTime;
+        Log.d(TAG, "new recording node time : "+timeMessage);*/
 
-        list.add(frequencyMessage + "," + timeMessage);
+        noteList.add(frequencyMessage);
 
-        initTime = time;
     }
 
     public LinkedList getFrequencyMessage()
     {
-        return list;
+        return noteList;
     }
 
 

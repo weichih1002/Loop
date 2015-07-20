@@ -2,16 +2,28 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:paddingTop="10dp"
-    android:background="@drawable/space_bg_score">
+    android:background="@drawable/space_bg_score"
+    android:id="@+id/relativeLayout_scoreLayout">
 
-    <ImageView
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/imageView"
-        android:src="@drawable/empty_score"
-        android:scaleType="centerInside"
+        android:gravity="center_horizontal"
         android:layout_marginTop="25dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:id="@+id/linerLayout_sheet_v">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/empty_sheet"
+            android:id="@+id/linerLayout_sheet_h">
+
+
+        </LinearLayout>
+    </LinearLayout>
+
 
 </RelativeLayout>

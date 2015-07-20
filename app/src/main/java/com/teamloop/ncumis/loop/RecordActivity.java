@@ -22,19 +22,10 @@ public class RecordActivity extends Activity {
 
     public static final String TAG = "recorderActivity";
     private SoundAnalyzer soundAnalyzer;
-    private Boolean recordFlag = true;
+    private int recordFlag = 0;
     private ImageButton recordBtn;
 
     public ProgressDialog progressDialog;
-
-    protected final int PROGRESS_STOP_NOTIFIER = 0x1008;
-    protected final int PROGRESS_THREADING_NOTIFIER = 0x1009;
-
-    private static final String notes[] =
-            {"A", "B", "B", "C", "C", "D", "E", "E", "F", "F", "G", "G"};
-
-    private static final String shapes[] =
-            {" ", "\u266D", " ", " ", "\u266F", " ", "\u266D", " ", " ", "\u266F", " ", "\u266F"};
 
 
     @Override
@@ -42,12 +33,14 @@ public class RecordActivity extends Activity {
         Log.d(TAG, "onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
         recordBtn = (ImageButton) findViewById(R.id.recordBtn);
+        recordBtn.setImageResource(R.drawable.rec_icon);
 
         recordBtn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(!recordFlag){    // 代表現在還沒錄音
+                if(recordFlag == 0){    // 代表現在還沒錄音
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         //若壓住錄音鈕要換色
                         recordBtn.setImageResource(R.drawable.rec_feedback);
@@ -56,13 +49,15 @@ public class RecordActivity extends Activity {
                         recordBtn.setImageResource(R.drawable.rec_icon);
                     }
                 }
-                if(recordFlag){     // 代表已經開始錄音
+                if(recordFlag == 1){     // 代表已經開始錄音
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         //若壓住停止鈕要換色
                         recordBtn.setImageResource(R.drawable.stop_rec_feedback);
+                        Log.d(TAG, "locate3 -> Flag = " + recordFlag);
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
                         //若放開停止鈕要變回來(沒有按下只有壓)
                         recordBtn.setImageResource(R.drawable.stop_rec_icon);
+                        Log.d(TAG, "locate4 -> Flag = " + recordFlag);
                     }
                 }
                 return false;
@@ -73,7 +68,7 @@ public class RecordActivity extends Activity {
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!recordFlag) {  // 代表現在還沒錄音
+                if (recordFlag == 0) {  // 代表現在還沒錄音
                     // click record button
                     recordBtn.setImageResource(R.drawable.stop_rec_icon);
                     startRecord();
@@ -119,7 +114,7 @@ public class RecordActivity extends Activity {
 
     // Start the sound Recorder
     private void startRecord() {
-        recordFlag = true;
+        recordFlag = 1;
         Log.d(TAG, "onStart()");
         if (soundAnalyzer != null) {
             soundAnalyzer.start();
@@ -142,23 +137,32 @@ public class RecordActivity extends Activity {
 
         progressDialog.show();
 
-        recordFlag = false;     // 停止錄音
+        recordFlag = 0;     // 停止錄音
         soundAnalyzer.stop();
 
         final Intent intent = new Intent();         // 產生scoreActivity等下要轉換
-        intent.setClass(this, ScoreActivity.class);
+        intent.setClass(RecordActivity.this, ScoreActivity.class);
 
 
         new Thread(new Runnable() {     // 產生progress dialog動畫
             @Override
             public void run() {
                 transformSoundData(intent);     // transformSoundData方法透過intent傳送資料
-                progressDialog.dismiss();       // 消除progressDialog
+
+                try{
+                    Thread.sleep(1000);             // 休息一秒
+                    progressDialog.dismiss();       // 再消除progressDialog
+                }
+                catch (Exception e)
+                {
+                    Log.e(TAG,"Exception when after transforming data sleeping.");
+                }
+                finally {
+                    startActivity(intent);          // 切換intent
+                    RecordActivity.this.finish();
+                }
             }
         }).start();
-
-        startActivity(intent);          // 切換intent
-       // RecordActivity.this.finish();
 
     }
 
@@ -167,36 +171,27 @@ public class RecordActivity extends Activity {
 
     private void transformSoundData(Intent it) {
         Log.d(TAG,"Enter transformSoundData()");
+        NoteAnalyzer noteAnalyzer = new NoteAnalyzer();     // 初始化NoteAnalyzer
+
         LinkedList frequencyList;
-        frequencyList = soundAnalyzer.getFrequencyMessage();
+        frequencyList = soundAnalyzer.getFrequencyMessage();    // 從SoundAnalyzer接受到頻率訊息
 
-        int nodeNum = frequencyList.size();
-        it.putExtra("nodeNum", nodeNum);    // 把list的大小傳到新activity
+        LinkedList noteList = noteAnalyzer.analyzeNote(frequencyList);      // 將頻率訊息丟進noteAnalyzer處理
 
-        int initPitch = 0;
-        int initKey = 4;
-        int cf, pitch, key;
-        double f;
-        long L;
-        for (int num = 0; num < nodeNum; num++) {
-            //  transform the frequency number to the pitch and the key
+        TempleAnalyzer templeAnalyzer = new TempleAnalyzer();   // 初始化TempleAnalyzer
 
-            String s = frequencyList.pop().toString();
-            String frqNode[] = s.split(",");
-            Long time = Long.parseLong(frqNode[1]);
+        LinkedList dataList;                                // 將音符訊息丟進TempleAnalyzer處理
+        dataList = templeAnalyzer.analyzeTemple(noteList, 60);          //並回傳dataList
 
-            f = Double.parseDouble(frqNode[0]);
-            L = Math.round(12 * log2(f / 440));     // ***用四捨五入去調整range,但可能要用if去調整range比較好
-            cf = (int) L;
-            pitch = initPitch + cf % 12;    // update the pitch
-            if (pitch < 0)
-                pitch += 12;
-            key = initKey + cf / 12;        // update the key
+        int nodeNum = dataList.size();  // 計算dataList的節點數
 
-            // 透過intent 傳遞資料 (String型態)
-            it.putExtra("node" + num, notes[pitch] + shapes[pitch] + "," + key + "," + time);
-            //Log.d(TAG,""+notes[pitch]+shapes[pitch]+","+key+","+time);
+        Bundle bundle = new Bundle();   // new 一個Bundle物件，用來傳遞資料
+        bundle.putInt("nodeNum", nodeNum);  // 把總節點數放入Bundle
 
+        for( int num=0; num<nodeNum; num++)
+        {
+            String data = dataList.pop().toString();
+            bundle.putString("node"+num,data);  // 把每個節點的資料放入Bundle
 
             // 把進度用setProgress傳出，告訴使用者進度
             double d = (100*num)/nodeNum;
@@ -205,25 +200,21 @@ public class RecordActivity extends Activity {
             try
             {
                 progressDialog.setProgress(sendNum);
-                Thread.sleep(200);  // 每次停0.2s 製造動畫感
+                Thread.sleep(100);  // 每次停0.05s 製造動畫感
             }
             catch (Exception e)
             {
                 Log.e(TAG, "Exception when running thread transformSoundData: " + e.getMessage());
             }
-
         }
+        it.putExtras(bundle);   // 把整個Bundle安排給Intent
 
-        progressDialog.setProgress(100);    // 全部結束後要回傳進度100%
-    }
+        progressDialog.setProgress(100);    // 全部結束後要回傳進度100%*/
 
-    // method - 計算log2為底
-    private double log2(double num) {
-        return Math.log(num) / Math.log(2.0);
     }
 
 
-    // 處理如何關閉程式
+    // 處理按下手機退出鍵會關閉程式
     public boolean onKeyDown(int keyCode, @NonNull KeyEvent event) {
 
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
