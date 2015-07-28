@@ -1,5 +1,6 @@
 package com.teamloop.ncumis.loop;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -7,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
+
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +16,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+
 
 import java.util.LinkedList;
 
@@ -27,16 +30,55 @@ public class RecordActivity extends Activity {
 
     public ProgressDialog progressDialog;
 
+    protected MenuList mFrag;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+/*
+
+        */
+/*
+        *   設定sliding menu 用來製作測邊功能鍵
+        * *//*
+
+        //  set the Behind View
+        setBehindContentView(R.layout.menu_frame);
+
+       if (savedInstanceState == null) {
+           FragmentTransaction fragmentTransaction = this.getSupportFragmentManager().beginTransaction();
+            mFrag = new MenuList();
+            fragmentTransaction.replace(R.id.menu_frame, mFrag);
+            fragmentTransaction.commit();
+        } else {
+            mFrag = (MenuList)this.getSupportFragmentManager().findFragmentById(R.id.menu_frame);
+        }
+
+        // customize the SlidingMenu
+        SlidingMenu sm = getSlidingMenu();
+        sm.setShadowWidthRes(R.dimen.shadow_width);
+        sm.setShadowDrawable(R.drawable.shadow);
+        sm.setBehindOffsetRes(R.dimen.sliding_menu_offset);
+        sm.setFadeDegree(0.35f);
+        sm.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
+
+
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+
+*/
+
+        /*
+        * recordBtn是錄音鍵，用來開始與結束錄音
+        * 以下還有onTouchListener與onClickListener
+        * */
+
 
         recordBtn = (ImageButton) findViewById(R.id.recordBtn);
         recordBtn.setImageResource(R.drawable.rec_icon);
 
+        // recordBtn 的touchListener
         recordBtn.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -64,7 +106,7 @@ public class RecordActivity extends Activity {
             }
         });
 
-        // 錄音鍵Listener
+        // 錄音鍵Click Listener
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,9 +145,10 @@ public class RecordActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id)
+        {
+            case  R.id.action_settings:
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -251,5 +294,6 @@ public class RecordActivity extends Activity {
 
         dialog.show();//顯示訊息視窗
     }
+
 
 }

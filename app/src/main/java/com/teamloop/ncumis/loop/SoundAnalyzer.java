@@ -5,12 +5,10 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
 
-import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.Observable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 

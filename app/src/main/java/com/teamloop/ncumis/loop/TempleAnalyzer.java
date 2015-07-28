@@ -35,7 +35,6 @@ public class TempleAnalyzer {
         String soundValue;
 
         int listSize = dataList.size();
-        Log.d(TAG,"listSize = "+listSize);
 
         // 開始判斷list中各個節點的拍數
         while( i < listSize )   // 從第一個點開始(index 0~n-1 )

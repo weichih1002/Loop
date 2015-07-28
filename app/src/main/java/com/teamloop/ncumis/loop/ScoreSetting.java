@@ -7,6 +7,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 public class ScoreSetting {
+    final static String TAG = "ScoreSetting";
+
     Activity activity;
     double beatCtr = 0.0;
     int initialY = 100;
@@ -37,7 +39,7 @@ public class ScoreSetting {
             initialX = 120;
         }
         else {
-            initialX = 5;
+            initialX = 10;
         }
 
         if (pitch.equals("pause")) {
@@ -76,8 +78,8 @@ public class ScoreSetting {
                     break;
             }
 
-            deltaY = searchNote(pitch,key);
-            if(deltaY != 0)
+            deltaY = initialY + searchNote(pitch,key);
+            if(deltaY != initialY)
             {
                 if(shape.equals("\u266F")) {
                     int sharpY = deltaY + 32;
@@ -87,6 +89,7 @@ public class ScoreSetting {
 
                     layoutParams_note.setMargins(0, deltaY, 0, 0);
                     lLayout.addView(item_note, layoutParams_note);
+
                 }
                 else {
                     layoutParams_note.setMargins(initialX, deltaY, 0, 0);
@@ -94,19 +97,18 @@ public class ScoreSetting {
                     lLayout.addView(item_note, layoutParams_note);
                 }
             }
-
         }
-        if (beatCtr == 4) {
+        /*if (beatCtr == 4) {
             initialY += 100;
             initialX = 120;
-        }
+        }*/
     }
 
     private int searchNote(String pitch , int key)
     {
         int deltaY;
         String noteArray[] = {"tooDeepOrHigh","A5","G5","F5","E5","D5","C5","B4","A4","G4","F4","E4","D4","C4","B3","A3"};
-        int noteYArray[] = {0,91,96,103,110,115,119,123,127,132,136,144,148,151,155,160};
+        int noteYArray[] = {0,-9,-4,3,10,15,18,23,27,32,36,43,48,53,56,60};
 
         int noteIndex = 0;
 
@@ -123,7 +125,7 @@ public class ScoreSetting {
 
         deltaY = noteYArray[noteIndex];
 
-        Log.d("searching","pitch = "+pitch+"deltaY = "+(deltaY));
+        Log.d("searching","pitch = "+pitch+"deltaY = "+(deltaY)+100);
 
         return deltaY;
     }
@@ -137,4 +139,20 @@ public class ScoreSetting {
     {
         beatCtr = beatCounter;
     }
+
+    public int getInitialY()
+    {
+        return  initialY;
+    }
+
+    public void setInitialX(int x)
+    {
+        initialX = x;
+    }
+
+    public void setInitialY(int y)
+    {
+        initialY = y;
+    }
+
 }

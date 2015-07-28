@@ -1,9 +1,6 @@
 package com.teamloop.ncumis.loop;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -56,6 +53,7 @@ public class ScoreActivity extends Activity {
         ScoreSetting settingScore = new ScoreSetting(ScoreActivity.this);
         int nodeNum = bundle.getInt("nodeNum");
 
+        settingScore.setInitialX(120);
         for(int num=0; num < nodeNum; num++)
         {
             String message = bundle.getString("node"+num);
@@ -67,6 +65,12 @@ public class ScoreActivity extends Activity {
                 int beat = Integer.parseInt(node[2]);
                 settingScore.makingScore(pitch, key, beat, lLayout);
             }
+            /*if(num == 9)
+            {
+                Log.d(TAG,"Have enter line");
+                settingScore.setBeatCtr(0);
+                settingScore.setInitialY(settingScore.getInitialY()+120);
+            }*/
         }
 
     }
