@@ -42,7 +42,7 @@ public class ScoreSetting {
             initialX = 10;
         }
 
-        if (pitch.equals("pause")) {
+            if (pitch.equals("rest")) {
             switch (beat) {
                 case 4:
                     beatCtr = beatCtr + 1.0;
@@ -98,10 +98,6 @@ public class ScoreSetting {
                 }
             }
         }
-        /*if (beatCtr == 4) {
-            initialY += 100;
-            initialX = 120;
-        }*/
     }
 
     private int searchNote(String pitch , int key)

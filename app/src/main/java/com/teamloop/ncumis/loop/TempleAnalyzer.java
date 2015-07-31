@@ -19,7 +19,7 @@ public class TempleAnalyzer {
         {
             String beginCheck = dataList.getFirst().toString();  // beginCheck會是音名或休止符
 
-            if( beginCheck.equals("pause"+"n\u0020"+",4") )    // 如果是休止符要丟棄
+            if( beginCheck.equals("rest"+"n\u0020"+",4") )    // 如果是休止符要丟棄
             {
                 dataList.pop();
             }

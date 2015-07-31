@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 
@@ -18,7 +19,17 @@ import android.view.View;
 import android.widget.ImageButton;
 
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOError;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
+
+import nu.xom.Document;
+import nu.xom.Serializer;
 
 
 public class RecordActivity extends Activity {
@@ -30,7 +41,6 @@ public class RecordActivity extends Activity {
 
     public ProgressDialog progressDialog;
 
-    protected MenuList mFrag;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -193,6 +203,7 @@ public class RecordActivity extends Activity {
                 transformSoundData(intent);     // transformSoundData方法透過intent傳送資料
 
                 try{
+
                     Thread.sleep(1000);             // 休息一秒
                     progressDialog.dismiss();       // 再消除progressDialog
                 }
@@ -224,17 +235,47 @@ public class RecordActivity extends Activity {
         TempleAnalyzer templeAnalyzer = new TempleAnalyzer();   // 初始化TempleAnalyzer
 
         LinkedList dataList;                                // 將音符訊息丟進TempleAnalyzer處理
-        dataList = templeAnalyzer.analyzeTemple(noteList, 60);          //並回傳dataList
+        dataList = templeAnalyzer.analyzeTemple(noteList, 80);          //並回傳dataList
 
         int nodeNum = dataList.size();  // 計算dataList的節點數
 
-        Bundle bundle = new Bundle();   // new 一個Bundle物件，用來傳遞資料
-        bundle.putInt("nodeNum", nodeNum);  // 把總節點數放入Bundle
+        //Bundle bundle = new Bundle();   // new 一個Bundle物件，用來傳遞資料
+        //bundle.putInt("nodeNum", nodeNum);  // 把總節點數放入Bundle
 
-        for( int num=0; num<nodeNum; num++)
+
+        //  製作musicXML
+        MusicXmlRenderer mxlRender = new MusicXmlRenderer();
+        mxlRender.newVoice();
+        mxlRender.measureEvent();
+
+        int beatCtr = 0;    //  用來計算拍子以換小節
+        int measureCtr = 0; //  用來計算小節以換行
+
+        //  將每一個note轉換成mxl格式
+        for( int num=0; num<nodeNum; num++  )
         {
             String data = dataList.pop().toString();
-            bundle.putString("node"+num,data);  // 把每個節點的資料放入Bundle
+            String node[] = data.split(",");
+            String value = node[0];
+            int key = Integer.parseInt(node[1]);
+            int beat = Integer.parseInt(node[2]);
+            //bundle.putString("node"+num,data);  // 把每個節點的資料放入Bundle
+
+            mxlRender.noteEvent(value, key, beat);
+            beatCtr = beatCtr + ( 4 * ( 4 / beat ) );
+
+            if(beatCtr == 4)    //  每滿4個拍子要換小節
+            {
+                mxlRender.measureEvent();
+                beatCtr = 0;
+                measureCtr++;
+            }
+
+            if(measureCtr == 2) //  每兩個小節要換行
+                mxlRender.changeSystemEvent(true);
+            else
+                mxlRender.changeSystemEvent(false);
+
 
             // 把進度用setProgress傳出，告訴使用者進度
             double d = (100*num)/nodeNum;
@@ -250,12 +291,64 @@ public class RecordActivity extends Activity {
                 Log.e(TAG, "Exception when running thread transformSoundData: " + e.getMessage());
             }
         }
-        it.putExtras(bundle);   // 把整個Bundle安排給Intent
+        //it.putExtras(bundle);   // 把整個Bundle安排給Intent
 
+        //Log.d("RRRRRRRRR","now~~"+mxlRender.getMusicXMLString());
+        OutputFile(mxlRender);
         progressDialog.setProgress(100);    // 全部結束後要回傳進度100%*/
 
     }
 
+    private void OutputFile(MusicXmlRenderer musicXmlRenderer)
+    {
+        /*
+        *  if Loop dir isn't exist in the sdcard
+        *  then new a directory
+        * */
+        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+        {
+            File sdFile = android.os.Environment.getExternalStorageDirectory();
+            String path = sdFile.getPath() + File.separator + "Loop";
+
+            File dirFile = new File(path);
+            if(!dirFile.exists())   // if directory isn't exist
+            {
+                dirFile.mkdir();    // make a directory
+            }
+        }
+
+        File sdcard = Environment.getExternalStorageDirectory();
+
+        // generate a file named by dateTime
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        String date = simpleDateFormat.format(new java.util.Date());
+        File fileXML = new File(sdcard, date+".xml");
+        try {
+            FileOutputStream fosXML = new FileOutputStream(fileXML, false);
+
+
+            Document mxlDoc = musicXmlRenderer.getMusicXMLDoc();
+            String p = mxlDoc.toXML();
+            fosXML.write(p.getBytes());
+
+            //	write the MusicXML file formatted
+            Serializer ser = new Serializer(fosXML, "UTF-8");
+            ser.setIndent(4);
+            ser.write(mxlDoc);
+
+            //Log.d(TAG,""+musicXmlRenderer.getMusicXMLString());
+
+            fosXML.close();
+        }
+        catch (FileNotFoundException fileNotFoundException)
+        {
+            Log.e(TAG,"found fileNotFoundException when generate a file.");
+        }
+        catch (IOException  ioException)
+        {
+            Log.e(TAG,"found ioException when serialize the musicXML.");
+        }
+    }
 
     // 處理按下手機退出鍵會關閉程式
     public boolean onKeyDown(int keyCode, @NonNull KeyEvent event) {

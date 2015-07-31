@@ -403,7 +403,7 @@ public class SoundAnalyzer extends Observable implements AudioRecord.OnRecordPos
             Log.d(TAG, "quiet recording,  time = " + timeMessage);
             initTime = nowTime;*/
 
-            noteList.add("pause");
+            noteList.add("rest");
 
             return new AnalyzedSound(loudness, AnalyzedSound.ReadingType.ZERO_SAMPLES);
         }

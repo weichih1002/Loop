@@ -22,8 +22,8 @@ public class ScoreActivity extends Activity {
 
         LinearLayout lLayout = (LinearLayout)findViewById(R.id.linerLayout_sheet_h);
 
-        Bundle bundle = this.getIntent().getExtras();
-        showScore(bundle, lLayout);
+        //Bundle bundle = this.getIntent().getExtras();
+        //showScore(bundle, lLayout);
     }
 
     @Override
@@ -65,14 +65,7 @@ public class ScoreActivity extends Activity {
                 int beat = Integer.parseInt(node[2]);
                 settingScore.makingScore(pitch, key, beat, lLayout);
             }
-            /*if(num == 9)
-            {
-                Log.d(TAG,"Have enter line");
-                settingScore.setBeatCtr(0);
-                settingScore.setInitialY(settingScore.getInitialY()+120);
-            }*/
         }
-
     }
 
 

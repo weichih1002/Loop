@@ -38,10 +38,10 @@ public class NoteAnalyzer {
             initKey = 4;
             String messageNode = frequencyList.pop().toString();
 
-            if (messageNode.equals("pause")) {
-                noteList.add("pause"+"n\u0020"+",4");
+            if (messageNode.equals("rest")) {
+                noteList.add("rest"+"n\u0020"+",4");
 
-                //Log.d(TAG, "pause" + ",4");
+                //Log.d(TAG, "rest" + ",4");
             } else {
                 f = Double.parseDouble(messageNode);
                 L = Math.round(12 * log2(f / 261.63));     // ***用四捨五入去調整range

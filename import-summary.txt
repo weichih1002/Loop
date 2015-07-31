@@ -1,0 +1,178 @@
+ECLIPSE ANDROID PROJECT IMPORT SUMMARY
+======================================
+
+Ignored Files:
+--------------
+The following files were *not* copied into the new Gradle project; you
+should evaluate whether these are still needed in your project and if
+so manually move them:
+
+* .gitignore
+* ChangeLog.txt
+* ReadMe.txt
+* doc\
+* doc\SeeScoreLib-Android-doc.pdf
+* doc\javadoc\
+* doc\javadoc\allclasses-frame.html
+* doc\javadoc\allclasses-noframe.html
+* doc\javadoc\constant-values.html
+* doc\javadoc\deprecated-list.html
+* doc\javadoc\help-doc.html
+* doc\javadoc\index-all.html
+* doc\javadoc\index.html
+* doc\javadoc\overview-frame.html
+* doc\javadoc\overview-summary.html
+* doc\javadoc\overview-tree.html
+* doc\javadoc\package-list
+* doc\javadoc\resources\
+* doc\javadoc\resources\background.gif
+* doc\javadoc\resources\tab.gif
+* doc\javadoc\resources\titlebar.gif
+* doc\javadoc\resources\titlebar_end.gif
+* doc\javadoc\serialized-form.html
+* doc\javadoc\stylesheet.css
+* doc\javadoc\uk\
+* doc\javadoc\uk\co\
+* doc\javadoc\uk\co\dolphin_com\
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\LicenceKeyInstance.html
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\MainActivity.html
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\SeeScoreView.ZoomNotification.html
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\SeeScoreView.html
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\SystemView.html
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\package-frame.html
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\package-summary.html
+* doc\javadoc\uk\co\dolphin_com\seescoreandroid\package-tree.html
+* doc\javadoc\uk\co\dolphin_com\sscore\
+* doc\javadoc\uk\co\dolphin_com\sscore\BarGroup.html
+* doc\javadoc\uk\co\dolphin_com\sscore\BarlineItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ClefItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Component.Type.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Component.html
+* doc\javadoc\uk\co\dolphin_com\sscore\CursorRect.html
+* doc\javadoc\uk\co\dolphin_com\sscore\DirectionItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Harmony.Chord.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Harmony.Frame.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Harmony.FrameNote.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Harmony.HarmonyKind.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Harmony.HarmonyPitch.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Harmony.html
+* doc\javadoc\uk\co\dolphin_com\sscore\HarmonyItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Header.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Item.html
+* doc\javadoc\uk\co\dolphin_com\sscore\KeySigItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\LayoutCallback.html
+* doc\javadoc\uk\co\dolphin_com\sscore\LayoutOptions.html
+* doc\javadoc\uk\co\dolphin_com\sscore\LoadOptions.html
+* doc\javadoc\uk\co\dolphin_com\sscore\LoadWarning.E.html
+* doc\javadoc\uk\co\dolphin_com\sscore\LoadWarning.W.html
+* doc\javadoc\uk\co\dolphin_com\sscore\LoadWarning.html
+* doc\javadoc\uk\co\dolphin_com\sscore\NoteItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\PartName.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Point.html
+* doc\javadoc\uk\co\dolphin_com\sscore\RenderItem.Colour.html
+* doc\javadoc\uk\co\dolphin_com\sscore\RenderItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\SScore.html
+* doc\javadoc\uk\co\dolphin_com\sscore\SScoreKey.html
+* doc\javadoc\uk\co\dolphin_com\sscore\SSystem.BarRange.html
+* doc\javadoc\uk\co\dolphin_com\sscore\SSystem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\SSystemList.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Size.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Sound.html
+* doc\javadoc\uk\co\dolphin_com\sscore\SoundItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Tied.html
+* doc\javadoc\uk\co\dolphin_com\sscore\TimeSigItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\TimedItem.html
+* doc\javadoc\uk\co\dolphin_com\sscore\Version.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\ArgumentErrorException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\BadDimensionsException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\BadMagnificationException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\BadPartIndexException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\FileOpenFailedException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\InternalFaultException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\ItemNotFoundException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\NoBarsInFileException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\NoImplementationException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\NoPartsException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\OutOfMemoryException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\ScoreException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\UnknownErrorException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\UnlicensedFunctionException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\XMLValidationException.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\package-frame.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\package-summary.html
+* doc\javadoc\uk\co\dolphin_com\sscore\ex\package-tree.html
+* doc\javadoc\uk\co\dolphin_com\sscore\package-frame.html
+* doc\javadoc\uk\co\dolphin_com\sscore\package-summary.html
+* doc\javadoc\uk\co\dolphin_com\sscore\package-tree.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\BarBeats.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\BarIterator.Bar.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\BarIterator.Part.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\BarIterator.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\Note.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\NoteIterator.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\PlayData.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\Tempo.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\TimeSig.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\UserTempo.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\package-frame.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\package-summary.html
+* doc\javadoc\uk\co\dolphin_com\sscore\playdata\package-tree.html
+* ic_launcher-web.png
+* proguard-project.txt
+
+Replaced Jars with Dependencies:
+--------------------------------
+The importer recognized the following .jar files as third party
+libraries and replaced them with Gradle dependencies instead. This has
+the advantage that more explicit version information is known, and the
+libraries can be updated automatically. However, it is possible that
+the .jar file in your project was of an older version than the
+dependency we picked, which could render the project not compileable.
+You can disable the jar replacement in the import wizard and try again:
+
+android-support-v4.jar => com.android.support:support-v4:19.+
+
+Moved Files:
+------------
+Android Gradle projects use a different directory structure than ADT
+Eclipse projects. Here's how the projects were restructured:
+
+* AndroidManifest.xml => seeScore\src\main\AndroidManifest.xml
+* assets\ => seeScore\src\main\assets\
+* libs\armeabi\libSeeScoreLib.so => seeScore\src\main\jniLibs\armeabi\libSeeScoreLib.so
+* libs\armeabi\libstlport_shared.so => seeScore\src\main\jniLibs\armeabi\libstlport_shared.so
+* lint.xml => seeScore\lint.xml
+* res\ => seeScore\src\main\res\
+* src\ => seeScore\src\main\java\
+
+Missing Android Support Repository:
+-----------------------------------
+Some useful libraries, such as the Android Support Library, are
+installed from a special Maven repository, which should be installed
+via the SDK manager.
+
+It looks like this library is missing from your SDK installation at:
+null
+
+To install it, open the SDK manager, and in the Extras category,
+select "Android Support Repository". You may also want to install the
+"Google Repository" if you want to use libraries like Google Play
+Services.
+
+Next Steps:
+-----------
+You can now build the project. The Gradle project needs network
+connectivity to download dependencies.
+
+Bugs:
+-----
+If for some reason your project does not build, and you determine that
+it is due to a bug or limitation of the Eclipse to Gradle importer,
+please file a bug at http://b.android.com with category
+Component-Tools.
+
+(This import summary is for your information only, and can be deleted
+after import once you are satisfied with the results.)
