@@ -53,7 +53,6 @@ public class TempleAnalyzer {
         for(int j=0; j<tempList.size(); j++)
         {
             String s = tempList.get(j).toString();
-            Log.d(TAG,""+s);
             String message[] = s.split(",");
             soundValue = message[0]+","+message[1];
             int beatNum = Integer.parseInt(message[2]);

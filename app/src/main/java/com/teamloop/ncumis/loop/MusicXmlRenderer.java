@@ -1,5 +1,10 @@
 package com.teamloop.ncumis.loop;
 
+import android.util.Log;
+
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
+
 import nu.xom.Attribute;
 import nu.xom.DocType;
 import nu.xom.Document;
@@ -15,7 +20,7 @@ public class MusicXmlRenderer
     private Element elCurPart;		//	current 'voice' add measures to this
     private static final int MUSICXMLDIVISIONS = 4;	//	4 divisions per quarter note
 
-
+    final static String TAG = "MusicXmlRenderer";
 
     /*
     *   Generate a default MusicXmlRenderer with score-partwise and identification
@@ -26,12 +31,131 @@ public class MusicXmlRenderer
         root = new Element("score-partwise");
         root.addAttribute(new Attribute("version", "3.0"));
 
+        // assemble element identification
         Element elID = new Element("identification");
-        Element elCreator = new Element("creator");
-        elCreator.addAttribute(new Attribute("type","composer"));
+        Element elCreator = new Element("creator");     // element creator
+        elCreator.addAttribute(new Attribute("type", "composer"));
         elCreator.appendChild("Loop MusicXmlRenderer");
         elID.appendChild(elCreator);
+
+        Element elEncoding = new Element("encoding");   // element encoding
+        Element elSoftware = new Element("software");
+        elSoftware.appendChild("Loop for Android");
+        elEncoding.appendChild(elSoftware);
+
+        Element elSupport1 = new Element("supports");
+        elSupport1.addAttribute(new Attribute("attribute", "new-system"));
+        elSupport1.addAttribute(new Attribute("element", "print"));
+        elSupport1.addAttribute(new Attribute("type", "yes"));
+        elSupport1.addAttribute(new Attribute("value", "yes"));
+        elEncoding.appendChild(elSupport1);
+
+        Element elSupport2 = new Element("supports");
+        elSupport2.addAttribute(new Attribute("attribute", "new-page"));
+        elSupport2.addAttribute(new Attribute("element", "print"));
+        elSupport2.addAttribute(new Attribute("type", "yes"));
+        elSupport2.addAttribute(new Attribute("value", "yes"));
+        elEncoding.appendChild(elSupport2);
+
+        elID.appendChild(elEncoding);
+
         root.appendChild(elID);
+
+
+        /* assemble element defaults
+        *  about layout information
+        *  defaults have child scaling, page-layout, system-layout,
+        *  staff-layout, appearance, and music-font,etc.
+        */
+        Element defaults = new Element("defaults");
+
+        // assemble element scaling
+        Element scaling = new Element("scaling");
+        Element millimeters = new Element("millimeters");
+        millimeters.appendChild("7");
+        Element tenths = new Element("tenths");
+        tenths.appendChild("40");
+        scaling.appendChild(millimeters);
+        scaling.appendChild(tenths);
+
+        // assemble element page-layout
+        Element pageLayout = new Element("page-layout");
+        Element pageHeight = new Element("page-height");
+        pageHeight.appendChild("1500");
+        Element pageWidth = new Element("page-width");
+        pageWidth.appendChild("1000");
+
+        pageLayout.appendChild(pageHeight);
+        pageLayout.appendChild(pageWidth);
+
+        Element systemLayout = new Element("system-layout");
+        Element systemMargin = new Element("system-margins");
+        Element sysLMargin = new Element("left-margin");
+        sysLMargin.appendChild("0");
+        Element sysRMargin = new Element("right-margin");
+        sysRMargin.appendChild("0");
+        systemMargin.appendChild(sysLMargin);
+        systemMargin.appendChild(sysRMargin);
+
+        Element systemDistance = new Element("system-distance");
+        systemDistance.appendChild("70");
+        Element topSystemDistance = new Element("top-system-distance");
+        topSystemDistance.appendChild("70");
+
+        systemLayout.appendChild(systemMargin);
+        systemLayout.appendChild(systemDistance);
+        systemLayout.appendChild(topSystemDistance);
+
+        // assemble staff-layout
+        Element staffLayout = new Element("staff-layout");
+        Element staffDistance = new Element("staff-distance");
+        staffDistance.appendChild("80");
+        staffLayout.appendChild(staffDistance);
+
+        //  assemble element appearance
+        Element appearance = new Element("appearance");
+        Element linewidth1 = new Element("line-width");
+        linewidth1.addAttribute(new Attribute("type","stem"));
+        linewidth1.appendChild("0.83");
+        Element linewidth2 = new Element("line-width");
+        linewidth2.addAttribute(new Attribute("type","staff"));
+        linewidth2.appendChild("1.25");
+        Element linewidth3 = new Element("line-width");
+        linewidth3.addAttribute(new Attribute("type","light barline"));
+        linewidth3.appendChild("1");
+        Element linewidth4 = new Element("line-width");
+        linewidth4.addAttribute(new Attribute("type","heavy barline"));
+        linewidth4.appendChild("3");
+        Element linewidth5 = new Element("line-width");
+        linewidth5.addAttribute(new Attribute("type","ending"));
+        linewidth5.appendChild("1.25");
+        Element linewidth6 = new Element("line-width");
+        linewidth6.addAttribute(new Attribute("type","wedge"));
+        linewidth6.appendChild("0.83");
+
+        // compose all children of appearance
+        appearance.appendChild(linewidth1);
+        appearance.appendChild(linewidth2);
+        appearance.appendChild(linewidth3);
+        appearance.appendChild(linewidth4);
+        appearance.appendChild(linewidth5);
+        appearance.appendChild(linewidth6);
+
+        // element music-font
+        Element musicFont = new Element("music-font");
+        musicFont.addAttribute(new Attribute("font-family", "Times New Roman"));
+        musicFont.addAttribute(new Attribute("font-size","6"));
+
+        // compose all element of element defaults
+        defaults.appendChild(scaling);
+        defaults.appendChild(pageLayout);
+        defaults.appendChild(systemLayout);
+        defaults.appendChild(staffLayout);
+        defaults.appendChild(appearance);
+        defaults.appendChild(musicFont);
+
+        root.appendChild(defaults);
+
 
         //	add an empty score-part list here (before any parts are added)
         //	score-parts are added to this as they are generated
@@ -87,8 +211,33 @@ public class MusicXmlRenderer
         elCurScorePart = new Element("score-part");
         Attribute atPart = new Attribute("id", "P1");
         elCurScorePart.addAttribute(atPart);
-        //	empty part name - Finale ignores it and Sibelius gets it wrong
-        elCurScorePart.appendChild(new Element("part-name"));
+
+        Element partName = new Element("part-name");
+        partName.appendChild("Piano");
+        Element scoreInstrument = new Element("score-instrument");
+        scoreInstrument.addAttribute(new Attribute("id", "P1-I1"));
+        Element instrument = new Element("instrument-name");
+        instrument.appendChild("Grand Piano");
+        scoreInstrument.appendChild(instrument);
+        Element midiInstrument = new Element("midi-instrument");
+        midiInstrument.addAttribute(new Attribute("id", "P1-I1"));
+        Element midiChannel = new Element("midi-channel");
+        midiChannel.appendChild("1");
+        Element midiProgram = new Element("midi-program");
+        midiProgram.appendChild("53");
+        Element volume = new Element("volume");
+        volume.appendChild("80");
+        Element pan = new Element("pan");
+        pan.appendChild("0");
+
+        midiInstrument.appendChild(midiChannel);
+        midiInstrument.appendChild(midiProgram);
+        midiInstrument.appendChild(volume);
+        midiInstrument.appendChild(pan);
+
+        elCurScorePart.appendChild(partName);
+        elCurScorePart.appendChild(scoreInstrument);
+        elCurScorePart.appendChild(midiInstrument);
 
         // add score-part to part-list
         Element elPL = root.getFirstChildElement("part-list");
@@ -111,9 +260,8 @@ public class MusicXmlRenderer
         {
             elCurMeasure = new Element("measure");
             elCurMeasure.addAttribute(new Attribute("number", Integer.toString(1)));
-            elCurMeasure.addAttribute(new Attribute("width", Integer.toString(200)));
 
-            //  set the print attributes
+/*            //  set the print attributes
             Element elPrint = new Element("print");
             if(bAddDefaults)
             {
@@ -123,7 +271,7 @@ public class MusicXmlRenderer
             }
             //  add the print tag to the first measure
             if(elPrint.getChildCount() > 0)
-                elCurMeasure.appendChild(elPrint);
+                elCurMeasure.appendChild(elPrint);*/
 
             //	assemble the attributes element
             Element elAttributes = new Element("attributes");
@@ -169,18 +317,20 @@ public class MusicXmlRenderer
                 firstNoteRest.addAttribute(new Attribute("measure", "yes"));
                 Element firstNoteDuration = new Element("duration");
                 firstNoteDuration.appendChild(Integer.toString(16));
-                Element firstNoteVoice = new Element("Voice");
-                firstNoteVoice.appendChild(Integer.toString(1));
+/*                Element firstNoteVoice = new Element("Voice");
+                firstNoteVoice.appendChild(Integer.toString(1));*/
                 firstMeasureNote.appendChild(firstNoteRest);
                 firstMeasureNote.appendChild(firstNoteDuration);
-                firstMeasureNote.appendChild(firstNoteVoice);
+//                firstMeasureNote.appendChild(firstNoteVoice);
             }
             // add the first measure note to the measure
             if(firstMeasureNote.getChildCount() > 0)
                 elCurMeasure.appendChild(firstMeasureNote);
 
+/*
             if (bAddDefaults)
                 doTempo(80);	//	80 BMP default
+*/
         }
     }	//	doFirstMeasure
 
@@ -385,9 +535,10 @@ public class MusicXmlRenderer
         //	element duration
         Element elDuration = new Element("duration");
         int duration = 0;
-        if(beat != 0)
-            duration = 4 * (MUSICXMLDIVISIONS / beat);
 
+        if(beat != 0) {
+            duration = (16 / beat);
+        }
         elDuration.appendChild(Integer.toString(duration));
         elNote.appendChild(elDuration);
 
@@ -410,10 +561,12 @@ public class MusicXmlRenderer
         elStem.appendChild("up");
         elNote.appendChild(elStem);
 
+/*
         //	set Voice
         Element elVoice = new Element("voice");
         elVoice.appendChild(Integer.toString(1));
         elNote.appendChild(elVoice);
+*/
 
 
         if (elCurMeasure == null)

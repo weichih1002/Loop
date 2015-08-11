@@ -17,6 +17,8 @@ public class WelcomeActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.welcome_page);
 
+        addShortcut();
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -54,4 +56,25 @@ public class WelcomeActivity extends Activity{
 
         return super.onOptionsItemSelected(item);
     }
+
+    // automatically build a shortcut on user's homepage
+    private void addShortcut()
+    {
+        Intent shortcut = new Intent("com.android.launcher.action.INSTALL_SHORTCUT");
+
+        //快捷按鍵的名稱
+        shortcut.putExtra(Intent.EXTRA_SHORTCUT_NAME, getString(R.string.app_name));
+        shortcut.putExtra("duplicate", false);  // 不允許重複build
+
+        Intent shortcutIntent = new Intent(Intent.ACTION_MAIN);
+        shortcutIntent.setClassName(this, this.getClass().getName());
+        shortcut.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
+
+        //快捷按鍵的縮圖
+        Intent.ShortcutIconResource iconRes = Intent.ShortcutIconResource.fromContext(this, R.mipmap.spaceman_launcher);
+        shortcut.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, iconRes);
+
+        sendBroadcast(shortcut);
+    }
+
 }

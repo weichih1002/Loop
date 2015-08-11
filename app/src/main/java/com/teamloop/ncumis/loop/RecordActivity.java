@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Environment;
@@ -38,8 +39,9 @@ public class RecordActivity extends Activity {
     private SoundAnalyzer soundAnalyzer;
     private int recordFlag = 0;
     private ImageButton recordBtn;
-
     public ProgressDialog progressDialog;
+    private double beatCtr = 0.0;   //  用來計算拍子以換小節
+
 
 
     @Override
@@ -126,7 +128,7 @@ public class RecordActivity extends Activity {
                     startRecord();
                 } else {
                     // click stop button
-                    stopRecord();
+                    confirmStopRecord();
                 }
             }
         });
@@ -168,7 +170,7 @@ public class RecordActivity extends Activity {
     // Start the sound Recorder
     private void startRecord() {
         recordFlag = 1;
-        Log.d(TAG, "onStart()");
+        Log.d(TAG, "recorder onStart()");
         if (soundAnalyzer != null) {
             soundAnalyzer.start();
         }
@@ -224,7 +226,6 @@ public class RecordActivity extends Activity {
        在最後面還有和progress dialog結合 產生動畫    */
 
     private void transformSoundData(Intent it) {
-        Log.d(TAG,"Enter transformSoundData()");
         NoteAnalyzer noteAnalyzer = new NoteAnalyzer();     // 初始化NoteAnalyzer
 
         LinkedList frequencyList;
@@ -247,9 +248,9 @@ public class RecordActivity extends Activity {
         MusicXmlRenderer mxlRender = new MusicXmlRenderer();
         mxlRender.newVoice();
         mxlRender.measureEvent();
+        mxlRender.changeSystemEvent(false);
 
-        int beatCtr = 0;    //  用來計算拍子以換小節
-        int measureCtr = 0; //  用來計算小節以換行
+        int measureCtr = -1; //  用來計算小節以換行
 
         //  將每一個note轉換成mxl格式
         for( int num=0; num<nodeNum; num++  )
@@ -261,21 +262,84 @@ public class RecordActivity extends Activity {
             int beat = Integer.parseInt(node[2]);
             //bundle.putString("node"+num,data);  // 把每個節點的資料放入Bundle
 
-            mxlRender.noteEvent(value, key, beat);
-            beatCtr = beatCtr + ( 4 * ( 4 / beat ) );
+            countBeat(beat);
 
-            if(beatCtr == 4)    //  每滿4個拍子要換小節
+            // Doing Quantization
+            // if next voice exceed the measure size then stuffing a rest
+            Log.d(TAG,"beatCounter = "+beatCtr);
+            if(beatCtr > 4.0)
             {
+                double temp = 0;
+                switch (beat)
+                {
+                    case 4:
+                        temp = 1.0;
+                        break;
+                    case 8:
+                        temp = 0.5;
+                        break;
+                    case 16:
+                        temp = 0.25;
+                        break;
+                }
+                double quantizeBeat = (4 - (beatCtr - temp));
+
+                int quantizeBeat2;
+                switch (""+quantizeBeat)
+                {
+                    case "0.25":
+                        quantizeBeat2 = 16;
+                        mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
+                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
+                        break;
+                    case "0.5":
+                        quantizeBeat2 = 8;
+                        mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
+                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
+                        break;
+                    case "0.75":
+                        quantizeBeat2 = 8;
+                        mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
+                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
+                        quantizeBeat2 = 16;
+                        mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
+                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
+                        break;
+                }
                 mxlRender.measureEvent();
-                beatCtr = 0;
+                setBeatCtrZero();   // set beatCtr 0
                 measureCtr++;
+                if (measureCtr == 0) //  每兩個小節要換行
+                {
+                    mxlRender.changeSystemEvent(true);
+                }else {
+                    mxlRender.changeSystemEvent(false);
+                    measureCtr = -1;
+                }
+
+                mxlRender.noteEvent(value, key, beat);
+                countBeat(beat);
+                Log.d(TAG, "beat counter = " + beatCtr);
             }
+            else if(beatCtr == 4.0)    //  the beat counter equal to 4 exactly
+            {
+                mxlRender.noteEvent(value, key, beat);
+                mxlRender.measureEvent();
+                setBeatCtrZero();   // set beatCtr 0
+                measureCtr++;
 
-            if(measureCtr == 2) //  每兩個小節要換行
-                mxlRender.changeSystemEvent(true);
+                if (measureCtr == 0) //  每兩個小節要換行
+                {
+                    mxlRender.changeSystemEvent(true);
+                }else {
+                    mxlRender.changeSystemEvent(false);
+                    measureCtr = -1;
+                }
+            }
             else
-                mxlRender.changeSystemEvent(false);
-
+            {  // normal situation
+                mxlRender.noteEvent(value, key, beat);
+            }
 
             // 把進度用setProgress傳出，告訴使用者進度
             double d = (100*num)/nodeNum;
@@ -293,43 +357,78 @@ public class RecordActivity extends Activity {
         }
         //it.putExtras(bundle);   // 把整個Bundle安排給Intent
 
-        //Log.d("RRRRRRRRR","now~~"+mxlRender.getMusicXMLString());
         OutputFile(mxlRender);
         progressDialog.setProgress(100);    // 全部結束後要回傳進度100%*/
 
     }
 
+    /* Output the musicXML temp file to cellPhone internal storage as an asset
+    *  This temp file will be process soon
+    */
     private void OutputFile(MusicXmlRenderer musicXmlRenderer)
     {
+        // set the saving directory
+        // default dir is /data/data/packageName/files/
+        File savingDir = getFilesDir();
+
+        // generate a xml file named by dateTime
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String date = simpleDateFormat.format(new java.util.Date());
+        File fileXML = new File(savingDir, date+".xml");
+
+        FileOutputStream fosXML;
+        try{
+            fosXML = new FileOutputStream(fileXML);
+
+            Document mxlDoc = musicXmlRenderer.getMusicXMLDoc();
+
+            //	write the MusicXML file formatted
+            Serializer ser = new Serializer(fosXML, "UTF-8");
+            ser.setIndent(4);
+            ser.write(mxlDoc);
+
+            fosXML.close();
+        }
+        catch (FileNotFoundException fileNotFoundException)
+        {
+            Log.e(TAG,"found fileNotFoundException when generate a file.");
+        }
+        catch (IOException  ioException)
+        {
+            Log.e(TAG,"found ioException when serialize the musicXML.");
+        }
+
+    }
+
+
+    // Output the musicXML file to cellPhone external storage
+    private void OutputFile_To_External_Storage(MusicXmlRenderer musicXmlRenderer)
+    {
+        File savingDir = null;
         /*
         *  if Loop dir isn't exist in the sdcard
         *  then new a directory
         * */
         if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
         {
-            File sdFile = android.os.Environment.getExternalStorageDirectory();
-            String path = sdFile.getPath() + File.separator + "Loop";
+            File sdcard = Environment.getExternalStorageDirectory();
+            String path = sdcard.getAbsolutePath() + "/Loop";
 
-            File dirFile = new File(path);
-            if(!dirFile.exists())   // if directory isn't exist
+            savingDir = new File(path);
+            if(!savingDir.exists())   // if directory isn't exist
             {
-                dirFile.mkdir();    // make a directory
+                savingDir.mkdir();    // make a directory
             }
         }
 
-        File sdcard = Environment.getExternalStorageDirectory();
-
         // generate a file named by dateTime
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = simpleDateFormat.format(new java.util.Date());
-        File fileXML = new File(sdcard, date+".xml");
+        File fileXML = new File(savingDir, date+".xml");
         try {
             FileOutputStream fosXML = new FileOutputStream(fileXML, false);
 
-
             Document mxlDoc = musicXmlRenderer.getMusicXMLDoc();
-            String p = mxlDoc.toXML();
-            fosXML.write(p.getBytes());
 
             //	write the MusicXML file formatted
             Serializer ser = new Serializer(fosXML, "UTF-8");
@@ -363,7 +462,7 @@ public class RecordActivity extends Activity {
         return super.onKeyDown(keyCode, event);
     }
 
-    public void confirmExit(){
+    private void confirmExit(){
         AlertDialog.Builder dialog = new AlertDialog.Builder(RecordActivity.this); //創建訊息方塊
 
         dialog.setTitle("離開");
@@ -386,7 +485,55 @@ public class RecordActivity extends Activity {
         });
 
         dialog.show();//顯示訊息視窗
+    }   // end method confirmExit
+
+
+    // confirm stop record
+    private void confirmStopRecord()
+    {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(RecordActivity.this);
+        dialog.setTitle("停止");
+        dialog.setMessage("確定停止錄音?");
+        dialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                stopRecord();
+            }
+        });
+
+        dialog.setNegativeButton("否", new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+
+            public void onClick(DialogInterface dialog, int i) {
+
+            }
+
+        });
+
+        dialog.show();//顯示訊息視窗
     }
 
+    // count the beat to make quantize
+    private void countBeat(int beat)
+    {
+        switch (beat)
+        {
+            case 4:
+                beatCtr += 1.0;
+                break;
+            case 8:
+                beatCtr += 0.5;
+                break;
+            case 16:
+                beatCtr += 0.25;
+                break;
+        }
+    }
+
+    // a set method that set the beat counter as zero
+    private void setBeatCtrZero()
+    {
+        beatCtr = 0;
+    }
 
 }
