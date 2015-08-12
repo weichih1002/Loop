@@ -5,25 +5,16 @@
     android:background="@drawable/space_bg_score"
     android:id="@+id/relativeLayout_scoreLayout">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
         android:layout_marginTop="25dp"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/linerLayout_sheet_v">
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="35dp"
+        >
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/empty_sheet"
-            android:id="@+id/linerLayout_sheet_h">
-
-
-        </LinearLayout>
-    </LinearLayout>
+    </ScrollView>
 
 
 </RelativeLayout>

@@ -107,11 +107,9 @@ public class RecordActivity extends Activity {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         //若壓住停止鈕要換色
                         recordBtn.setImageResource(R.drawable.stop_rec_feedback);
-                        Log.d(TAG, "locate3 -> Flag = " + recordFlag);
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
                         //若放開停止鈕要變回來(沒有按下只有壓)
                         recordBtn.setImageResource(R.drawable.stop_rec_icon);
-                        Log.d(TAG, "locate4 -> Flag = " + recordFlag);
                     }
                 }
                 return false;
@@ -266,7 +264,6 @@ public class RecordActivity extends Activity {
 
             // Doing Quantization
             // if next voice exceed the measure size then stuffing a rest
-            Log.d(TAG,"beatCounter = "+beatCtr);
             if(beatCtr > 4.0)
             {
                 double temp = 0;
@@ -290,20 +287,16 @@ public class RecordActivity extends Activity {
                     case "0.25":
                         quantizeBeat2 = 16;
                         mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
-                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
                         break;
                     case "0.5":
                         quantizeBeat2 = 8;
                         mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
-                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
                         break;
                     case "0.75":
                         quantizeBeat2 = 8;
                         mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
-                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
                         quantizeBeat2 = 16;
                         mxlRender.noteEvent("rest"+"n\u0020",4,quantizeBeat2);
-                        Log.d(TAG, "quantize beat = " + quantizeBeat2);
                         break;
                 }
                 mxlRender.measureEvent();
@@ -319,7 +312,6 @@ public class RecordActivity extends Activity {
 
                 mxlRender.noteEvent(value, key, beat);
                 countBeat(beat);
-                Log.d(TAG, "beat counter = " + beatCtr);
             }
             else if(beatCtr == 4.0)    //  the beat counter equal to 4 exactly
             {

@@ -81,3 +81,19 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 >>>>>>> Loop/master
+.idea/compiler.xml
+.idea/encodings.xml
+.idea/gradle.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/runConfigurations.xml
+.idea/vcs.xml
+Loop.iml
+app/app.iml
+gradle/wrapper/gradle-wrapper.properties
+gradlew
+libs/libs.iml
+libs/seescore/lint.xml
+libs/seescore/seescore.iml
+xom/build.gradle
+xom/xom.iml

@@ -308,6 +308,7 @@ public class MusicXmlRenderer
             if (elAttributes.getChildCount() > 0)
                 elCurMeasure.appendChild(elAttributes);
 
+/*
 
             // default set a 4 beat rest at the first measure
             Element firstMeasureNote = new Element("note");
@@ -317,8 +318,10 @@ public class MusicXmlRenderer
                 firstNoteRest.addAttribute(new Attribute("measure", "yes"));
                 Element firstNoteDuration = new Element("duration");
                 firstNoteDuration.appendChild(Integer.toString(16));
+*/
 /*                Element firstNoteVoice = new Element("Voice");
-                firstNoteVoice.appendChild(Integer.toString(1));*/
+                firstNoteVoice.appendChild(Integer.toString(1));*//*
+
                 firstMeasureNote.appendChild(firstNoteRest);
                 firstMeasureNote.appendChild(firstNoteDuration);
 //                firstMeasureNote.appendChild(firstNoteVoice);
@@ -326,11 +329,14 @@ public class MusicXmlRenderer
             // add the first measure note to the measure
             if(firstMeasureNote.getChildCount() > 0)
                 elCurMeasure.appendChild(firstMeasureNote);
+*/
 
 /*
             if (bAddDefaults)
                 doTempo(80);	//	80 BMP default
 */
+
+            
         }
     }	//	doFirstMeasure
 
