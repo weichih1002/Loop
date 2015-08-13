@@ -5,16 +5,39 @@
     android:background="@drawable/space_bg_score"
     android:id="@+id/relativeLayout_scoreLayout">
 
-    <ScrollView
-        android:id="@+id/scrollView1"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/imageView1">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <ScrollView
+                android:id="@+id/scrollView1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:layout_marginLeft="35dp"
+                android:layout_marginRight="30dp"
+                >
+
+            </ScrollView>
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="25dp"
-        android:layout_marginLeft="35dp"
-        android:layout_marginRight="35dp"
-        >
-
-    </ScrollView>
-
+        android:id="@+id/imageView1"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/ufo"
+        android:paddingBottom="5dp"
+        android:scaleType="centerInside"/>
 
 </RelativeLayout>
