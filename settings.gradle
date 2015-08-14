@@ -1,2 +1,2 @@
-include ':app', ':xom'
+include ':app'
 include ':libs:seescore'

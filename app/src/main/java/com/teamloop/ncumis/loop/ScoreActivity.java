@@ -472,6 +472,7 @@ public class ScoreActivity extends Activity {
             Intent intent = new Intent();         // 產生scoreActivity等下要轉換
             intent.setClass(ScoreActivity.this, RecordActivity.class);
 
+            clearInternalDir();             // 把暫存musicMXL檔清除
             startActivity(intent);          // 切換intent
             ScoreActivity.this.finish();
 
@@ -489,10 +490,8 @@ public class ScoreActivity extends Activity {
     protected void onStart()
     {
         super.onStart();
-        Log.d("Loop~~~~~","Hi~~~Enter On Start");
         if (currentScore != null) // we can use the saved score if only rotating the display - we don't want the whole reload
         {
-            Log.d("Loop~~~","location1");
             showScore(currentScore);
         }
         else
@@ -500,19 +499,14 @@ public class ScoreActivity extends Activity {
             new Thread(new Runnable(){ // load file on background thread
 
                 public void run() {
-                    Log.d("Loop~~~","location2");
-                    Log.d("Loop~~~","CurrentFile = "+currentFile);
                     final SScore score = (currentFile != null) ? loadFile(currentFile) : loadNextFile();
 
                     new Handler(Looper.getMainLooper()).post(new Runnable(){
 
                         public void run() {
-                            Log.d("Loop~~~","location3");
 
-                            Log.d("Loop~~~","score = "+score);
                             if (score != null)
                             {
-                                Log.d("Loop~~~","Gonna show the score!!!!");
                                 showScore(score); // update score in SeeScoreView on foreground thread
                             }
                         }
