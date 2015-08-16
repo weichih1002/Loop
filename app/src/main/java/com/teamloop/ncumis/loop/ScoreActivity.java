@@ -1,9 +1,12 @@
 package com.teamloop.ncumis.loop;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -13,7 +16,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -73,10 +78,37 @@ public class ScoreActivity extends Activity {
     private float magnification;
     private boolean isTransposing;  // set to prevent reentry during transpose
 
+    private ImageButton backBtn;
+    private ImageButton downloadBtn;
+
+    private String fileName = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "ScoreActivity onCreate()");
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.score_layout);
+
+        backBtn = (ImageButton)findViewById(R.id.backBtn);
+        backBtn.setImageResource(R.drawable.back);
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmGoBack();
+            }
+        });
+
+        Bundle bundle = this.getIntent().getExtras();
+        fileName = bundle.getString("fileName");
+
+        downloadBtn = (ImageButton)findViewById(R.id.downloadBtn);
+        downloadBtn.setImageResource(R.drawable.download);
+        downloadBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmDownloadScreenShot();
+            }
+        });
 
         magnification = 0.5F;
         if (reloadAssetsFiles)
@@ -87,7 +119,6 @@ public class ScoreActivity extends Activity {
             }
         });
 
-        setContentView(R.layout.score_layout);
         ScrollView sv = (ScrollView) findViewById(R.id.scrollView1);
         sv.addView(scoreView);
         sv.setOnTouchListener(new View.OnTouchListener() {
@@ -463,23 +494,74 @@ public class ScoreActivity extends Activity {
         }
     }
 
+    // method to confirm download the score
+    private void confirmDownloadScreenShot()
+    {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(ScoreActivity.this);
+        dialog.setTitle("下載");
+        dialog.setMessage("是否儲存樂譜?");
+        dialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ScreenShot screenShot = new ScreenShot(fileName);
+                screenShot.shootPic(ScoreActivity.this);
+
+                Toast.makeText(ScoreActivity.this, "已儲存於檔案資料夾Loop中", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.setNegativeButton("否", new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+
+            public void onClick(DialogInterface dialog, int i) {
+
+            }
+
+        });
+
+        dialog.show();//顯示訊息視窗
+
+    }
+
+
+    // method to confirm go back to record activity
+    private void confirmGoBack(){
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(ScoreActivity.this);
+        dialog.setMessage("返回主畫面?");
+        dialog.setPositiveButton("是", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent();         // 產生RecordActivity等下要轉換
+                intent.setClass(ScoreActivity.this, RecordActivity.class);
+
+                clearInternalDir();             // 把暫存musicMXL檔清除
+                startActivity(intent);          // 切換intent
+                ScoreActivity.this.finish();
+            }
+        });
+
+        dialog.setNegativeButton("否", new DialogInterface.OnClickListener() { //按"否",則不執行任何操作
+
+            public void onClick(DialogInterface dialog, int i) {
+
+            }
+
+        });
+
+        dialog.show();//顯示訊息視窗
+    }
 
     // 處理如何關閉程式
     public boolean onKeyDown(int keyCode, @NonNull KeyEvent event) {
 
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
-
-            Intent intent = new Intent();         // 產生scoreActivity等下要轉換
-            intent.setClass(ScoreActivity.this, RecordActivity.class);
-
-            clearInternalDir();             // 把暫存musicMXL檔清除
-            startActivity(intent);          // 切換intent
-            ScoreActivity.this.finish();
-
+            confirmGoBack();
             return true;
         }
 
-        return super.onKeyDown(keyCode, event);
+        return false;
     }
 
 

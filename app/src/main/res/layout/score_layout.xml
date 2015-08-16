@@ -40,4 +40,28 @@
         android:paddingBottom="5dp"
         android:scaleType="centerInside"/>
 
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/backBtn"
+        android:src="@drawable/back"
+        android:background="@null"
+        android:layout_marginBottom="50dp"
+        android:layout_marginStart="70dp"
+        android:layout_alignBottom="@+id/imageView1"
+        android:layout_alignParentStart="true"
+        android:scaleType="centerInside"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/downloadBtn"
+        android:src="@drawable/download"
+        android:background="@null"
+        android:layout_marginBottom="50dp"
+        android:layout_marginEnd="70dp"
+        android:scaleType="centerInside"
+        android:layout_alignTop="@+id/backBtn"
+        android:layout_alignParentEnd="true" />
+
 </RelativeLayout>

@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 
 import java.io.File;
@@ -28,6 +29,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import nu.xom.Document;
 import nu.xom.Serializer;
@@ -41,7 +44,7 @@ public class RecordActivity extends Activity {
     private ImageButton recordBtn;
     public ProgressDialog progressDialog;
     private double beatCtr = 0.0;   //  用來計算拍子以換小節
-
+    private String outputFileName = "";
 
 
     @Override
@@ -212,6 +215,11 @@ public class RecordActivity extends Activity {
                     Log.e(TAG,"Exception when after transforming data sleeping.");
                 }
                 finally {
+                    Bundle bundle = new Bundle();
+                    bundle.putString("fileName",getOutputFileName());
+
+                    intent.putExtras(bundle);
+
                     startActivity(intent);          // 切換intent
                     RecordActivity.this.finish();
                 }
@@ -354,6 +362,16 @@ public class RecordActivity extends Activity {
 
     }
 
+    private void setOutputFileName(String s)
+    {
+        outputFileName = s;
+    }
+
+    private String getOutputFileName()
+    {
+        return outputFileName;
+    }
+
     /* Output the musicXML temp file to cellPhone internal storage as an asset
     *  This temp file will be process soon
     */
@@ -367,6 +385,8 @@ public class RecordActivity extends Activity {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String date = simpleDateFormat.format(new java.util.Date());
         File fileXML = new File(savingDir, date+".xml");
+
+        setOutputFileName(date);
 
         FileOutputStream fosXML;
         try{
@@ -442,19 +462,47 @@ public class RecordActivity extends Activity {
     }
 
     // 處理按下手機退出鍵會關閉程式
+
+    private static Boolean isExit = false;
+
+    Timer timer = new Timer();
+
     public boolean onKeyDown(int keyCode, @NonNull KeyEvent event) {
 
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {   //確定按下退出鍵
 
-            confirmExit(); //呼叫confirmExit()函數
+            if(isExit == false)
+            {
+                isExit = true;
+                Toast.makeText(RecordActivity.this, "再按一次返回鍵退出程式", Toast.LENGTH_SHORT).show();
 
-            return true;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(2000);
+                            isExit = false;
+                        }
+                        catch (InterruptedException e)
+                        {
+                            Log.e(TAG,"InterruptedException Occurred when onKeyDown method");
+                        }
+                    }
+                }).start();
+            }
+            else {
+                android.os.Process.killProcess(android.os.Process.myPid());
+                return true;
+            }
         }
-
-        return super.onKeyDown(keyCode, event);
+        return false;
     }
 
-    private void confirmExit(){
+    private void confirmExit()
+    {
+
+
+
         AlertDialog.Builder dialog = new AlertDialog.Builder(RecordActivity.this); //創建訊息方塊
 
         dialog.setTitle("離開");
