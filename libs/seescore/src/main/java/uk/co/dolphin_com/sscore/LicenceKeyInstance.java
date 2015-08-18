@@ -2,16 +2,24 @@
  * SeeScore For Android
  * Dolphin Computing http://www.dolphin-com.co.uk
  */
+/* SeeScoreLib Key for LOOP
+
+ IMPORTANT! This file is for LOOP only.
+ It must be used only for the application for which it is licensed,
+ and must not be released to any other individual or company.
+ */
+
 package uk.co.dolphin_com.sscore;
 
 /**
  * The licence key to enable features in SeeScoreLib supplied by Dolphin Computing
  */
+
 public class LicenceKeyInstance
 {
-	// licence keys: contents, transpose, item_colour, draw_multipart, android
-	private static final int[] keycap = {0X4494,0X0};
-	private static final int[] keycode = {0X614f9a7e,0X3127f81b,0Xbfd8b439,0X3711cdd3,0X71dff3e3,0Xbcc9f574,0X2604f67d,0Xfd29c0b,0X3ecb13c5,0X4c029e4a,0X3fe63342,0Xbf45af9c,0X222f52d4,0X50e6edd4,0X2c66a0e};
+// licence keys: draw, contents, transpose, play_data, item_colour, multipart, android, midi_out
+	private static final int[] keycap = {0X1044b5,0X0};
+	private static final int[] keycode = {0X325b5ccf,0Xc2a33dd,0X69acb160,0X26b2f868,0X2fd287b1,0Xd83022d6,0X26ca8dfe,0X3c303297,0Xf7c307ea,0X497660,0X56fa98c5,0X5044fbb3,0X5e43da1f,0X38a55992,0Xd7e30130};
 
-	public static final SScoreKey SeeScoreLibKey = new SScoreKey("Loop", keycap, keycode);
+	public static final SScoreKey SeeScoreLibKey = new SScoreKey("LOOP", keycap, keycode);
 }
