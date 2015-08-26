@@ -8,9 +8,10 @@ android {
         applicationId "com.teamloop.ncumis.loop"
         minSdkVersion 19
         targetSdkVersion 22
-        versionCode 3
-        versionName "1.3.0"
+        versionCode 4
+        versionName "1.3.1"
     }
+
 
     buildTypes {
         release {
@@ -26,6 +27,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.0.0'
     compile project(':libs:seescore')
+    compile project(':libs:QuickAction')
     compile files('libs/jtransforms-2.4.jar')
     compile files('libs/xom-1.2.10.jar')
 }

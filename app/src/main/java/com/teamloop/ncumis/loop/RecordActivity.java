@@ -52,43 +52,13 @@ public class RecordActivity extends Activity {
         Log.d(TAG, "onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-/*
-
-        */
-/*
-        *   設定sliding menu 用來製作測邊功能鍵
-        * *//*
-
-        //  set the Behind View
-        setBehindContentView(R.layout.menu_frame);
-
-       if (savedInstanceState == null) {
-           FragmentTransaction fragmentTransaction = this.getSupportFragmentManager().beginTransaction();
-            mFrag = new MenuList();
-            fragmentTransaction.replace(R.id.menu_frame, mFrag);
-            fragmentTransaction.commit();
-        } else {
-            mFrag = (MenuList)this.getSupportFragmentManager().findFragmentById(R.id.menu_frame);
-        }
-
-        // customize the SlidingMenu
-        SlidingMenu sm = getSlidingMenu();
-        sm.setShadowWidthRes(R.dimen.shadow_width);
-        sm.setShadowDrawable(R.drawable.shadow);
-        sm.setBehindOffsetRes(R.dimen.sliding_menu_offset);
-        sm.setFadeDegree(0.35f);
-        sm.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 
 
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-
-*/
 
         /*
         * recordBtn是錄音鍵，用來開始與結束錄音
         * 以下還有onTouchListener與onClickListener
         * */
-
 
         recordBtn = (ImageButton) findViewById(R.id.recordBtn);
         recordBtn.setImageResource(R.drawable.rec_icon);

@@ -17,7 +17,7 @@ public class WelcomeActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.welcome_page);
 
-        addShortcut();
+        //addShortcut();
 
         new Thread(new Runnable() {
             @Override
