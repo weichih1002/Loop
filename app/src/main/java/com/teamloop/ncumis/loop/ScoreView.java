@@ -1,9 +1,30 @@
+/**
+ * SeeScore For Android Sample App
+ * Dolphin Computing http://www.dolphin-com.co.uk
+ */
 package com.teamloop.ncumis.loop;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import uk.co.dolphin_com.sscore.Component;
+import uk.co.dolphin_com.sscore.LayoutCallback;
+import uk.co.dolphin_com.sscore.LayoutOptions;
+import uk.co.dolphin_com.sscore.SScore;
+import uk.co.dolphin_com.sscore.SSystem;
+import uk.co.dolphin_com.sscore.SSystem.BarRange;
+import uk.co.dolphin_com.sscore.SSystemList;
+import uk.co.dolphin_com.sscore.Size;
+import uk.co.dolphin_com.sscore.ex.NoPartsException;
+import uk.co.dolphin_com.sscore.ex.ScoreException;
+import uk.co.dolphin_com.sscore.playdata.Note;
+
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.view.MotionEventCompat;
@@ -12,62 +33,84 @@ import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * SeeScoreView manages layout of a {@link SScore} and placement of {@link SystemView}s into a scrolling View.
+ */
+public class ScoreView extends LinearLayout  {
 
-import uk.co.dolphin_com.sscore.LayoutCallback;
-import uk.co.dolphin_com.sscore.LayoutOptions;
-import uk.co.dolphin_com.sscore.SScore;
-import uk.co.dolphin_com.sscore.SSystem;
-import uk.co.dolphin_com.sscore.SSystemList;
-import uk.co.dolphin_com.sscore.Size;
-import uk.co.dolphin_com.sscore.ex.NoPartsException;
-import uk.co.dolphin_com.sscore.ex.ScoreException;
+    /**
+     * The type of cursor, a vertical line or a rectangle around a bar
+     */
+    public static enum CursorType
+    {
+        line, box
+    }
 
-
-public class ScoreView extends LinearLayout {
-
+    /**
+     * for notification of zoom change
+     */
     public interface ZoomNotification
     {
+        /**
+         * called on notification of zoom
+         * @param scale the new zoom scale
+         */
         void zoom(float scale);
     }
+
+    /**
+     * for notification of a tap in the view
+     */
+    public interface TapNotification
+    {
+        /**
+         * called on notification of a user tap on a system with information about what was tapped
+         * @param systemIndex the index of the system tapped (0 is the top system)
+         * @param partIndex the 0-based part index of the part tapped
+         * @param barIndex the 0-based bar index of the bar tapped
+         * @param components the components tapped
+         */
+        void tap(int systemIndex, int partIndex, int barIndex, Component[] components);
+    }
+
+    /**
+     * autoscroll centres the current playing bar around here
+     */
+    private static final float kWindowPlayingCentreFractionFromTop = 0.333F;
+
     /**
      * the minimum magnification
      */
-    static final float kMinMag = 0.2F;
+    private static final float kMinMag = 0.2F;
 
     /**
      * the maximum magnification
      */
-    static final float kMaxMag = 3.F;
+    private static final float kMaxMag = 3.F;
 
     /**
      * the margin between the edge of the screen and the edge of the layout
      */
     static final float kMargin = 10;
 
-    private SScore score;
-    private AssetManager assetManager;
-    private int displayDPI;
-    private SSystemList systems;
-    private float magnification;
-    private LayoutThread layoutThread;
-    private float screenHeight;
-    private boolean isAbortingLayout = false;
-    private float startPinchFingerSpacing;
-    private boolean isZooming = false;
-    private ArrayList<SystemView> views = new ArrayList<SystemView>();
-    private ZoomNotification zoomNotify;
-    private Runnable layoutCompletionHandler;
-
-    public ScoreView(Activity context, AssetManager am, ZoomNotification zn) {
+    /**
+     * construct the SeeScore scrollable View
+     * @param context (usually the MainActivity)
+     * @param am the asset manager for font handling
+     * @param zn the zoom notification which is called on (pinch) zoom change
+     * @param tn the tap notification which is called on a tap in the view with info about what was tapped
+     */
+    public ScoreView(Activity context, AssetManager am, ZoomNotification zn, TapNotification tn) {
         super(context);
         setOrientation(VERTICAL);
         this.assetManager = am;
         this.magnification = 1.0F;
         this.zoomNotify = zn;
+        this.tapNotify = tn;
         DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
         Display display = context.getWindowManager().getDefaultDisplay();
         display.getMetrics(displayMetrics);
@@ -75,18 +118,31 @@ public class ScoreView extends LinearLayout {
         android.graphics.Point screenSize = new android.graphics.Point();
         display.getSize(screenSize);
         screenHeight = screenSize.y;
+
     }
 
+    /**
+     * set a handler to be called on completion of layout (not usually necessary)
+     * @param handler run() is called on layout completion
+     */
     public void setLayoutCompletionHandler(Runnable handler)
     {
         layoutCompletionHandler = handler;
     }
 
+    /**
+     * * get the magnification
+     * @return the current magnification
+     */
     public float getMagnification()
     {
         return magnification;
     }
 
+    /**
+     * get the width and height of the SeeScoreView
+     * @return the bounds
+     */
     public Size getBounds()
     {
         return systems.getBounds(0);
@@ -98,16 +154,16 @@ public class ScoreView extends LinearLayout {
         new Handler(Looper.getMainLooper()).post(new Runnable(){
 
             public void run() {
-                SystemView sv = new SystemView(getContext(), score, sys, ScoreView.this.assetManager);
+                SystemView sv = new SystemView(getContext(), score, sys, ScoreView.this.assetManager, tapNotify);
                 addView(sv);
                 views.add(sv);
             }
         });
     }
 
-    public List<SSystem.BarRange> getAllBarRanges()
+    private List<BarRange> getAllBarRanges()
     {
-        ArrayList<SSystem.BarRange> rval = new ArrayList<SSystem.BarRange>();
+        ArrayList<BarRange> rval = new ArrayList<BarRange>();
         for (int sysindex = 0; sysindex < systems.getSize(); ++sysindex)
             rval.add(systems.getSystemAt(sysindex).getBarRange());
         return rval;
@@ -128,6 +184,7 @@ public class ScoreView extends LinearLayout {
      * each System completes layout
      *
      * @param score the SScore to be displayed
+     * @param magnification the magnification to use (default is 1.0)
      */
     public void setScore(final SScore score, final float magnification)
     {
@@ -146,6 +203,144 @@ public class ScoreView extends LinearLayout {
                 }
             }
         });
+    }
+
+    /** slower than smoothScrollTo */
+    private void slowSmoothScrollTo(final ScrollView parentScrollView, int scrollY, int autoScrollAnimationTime) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            ValueAnimator realSmoothScrollAnimation =
+                    ValueAnimator.ofInt(parentScrollView.getScrollY(), scrollY);
+            realSmoothScrollAnimation.setDuration(autoScrollAnimationTime);
+            realSmoothScrollAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    int scrollTo = (Integer) animation.getAnimatedValue();
+                    parentScrollView.scrollTo(0, scrollTo);
+                }
+            });
+
+            realSmoothScrollAnimation.start();
+        } else {
+            parentScrollView.smoothScrollTo(0, scrollY);
+        }
+    }
+
+    private void scrollToBar(int barIndex, int autoScrollAnimationTime) {
+        ViewParent parentView = getParent();
+        if (parentView instanceof ScrollView) {
+            final ScrollView parentScrollView = (ScrollView) parentView;
+            for (View view : views) {
+                if (view instanceof SystemView
+                        && view.isShown()) {
+                    SystemView systemView = (SystemView) view;
+                    if (systemView.containsBar(barIndex)) {
+                        int scroll_max = getBottom() - parentScrollView.getHeight();
+                        int scroll_min = 0;
+                        float windowHeight = parentScrollView.getHeight();
+                        float windowPlayingCentre = kWindowPlayingCentreFractionFromTop * windowHeight;
+                        float sysFrac = systemView.fractionalScroll(barIndex);
+                        float playingCentre = view.getTop() + view.getHeight() * sysFrac;
+                        float scroll_y = playingCentre - windowPlayingCentre;
+
+                        if (scroll_y < scroll_min)
+                            scroll_y = scroll_min;
+                        else if (scroll_y > scroll_max)
+                            scroll_y = scroll_max;
+                        slowSmoothScrollTo(parentScrollView, (int) scroll_y, autoScrollAnimationTime);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * set the cursor at a given bar
+     * @param barIndex the (0-based) bar index
+     * @param type use a vertical line or a box around the bar
+     * @param autoScrollAnimationTime a hint for the scroll time in ms
+     * @return true if it succeeded
+     */
+    public boolean setCursorAtBar(int barIndex, CursorType type, int autoScrollAnimationTime) {
+        boolean rval = false;
+        for (View view : views) {
+            if (view instanceof SystemView
+                    && view.isShown()) {
+                SystemView systemView = (SystemView) view;
+                if (systemView.setCursorAtBar(barIndex, (type==CursorType.line)?SystemView.CursorType.line:SystemView.CursorType.box)) {
+                    scrollToBar(barIndex, autoScrollAnimationTime);
+                }
+            }
+        }
+        return rval;
+    }
+
+    /**
+     * set the vertical line cursor at a given bar with a given xpos (from the system left)
+     * @param barIndex the (0-based) bar index
+     * @param xpos the x coordinate from the system left
+     * @param autoScrollAnimationTime a hint for the scroll time in ms
+     * @return true if it succeeded
+     */
+    public boolean setCursorAtBar(int barIndex, float xpos, int autoScrollAnimationTime) {
+        boolean rval = false;
+        for (View view : views) {
+            if (view instanceof SystemView
+                    && view.isShown()) {
+                SystemView systemView = (SystemView) view;
+                if (systemView.setCursorAtBar(barIndex, xpos)) {
+                    scrollToBar(barIndex, autoScrollAnimationTime);
+                }
+            }
+        }
+        return rval;
+    }
+
+    private SSystem systemContainingBarIndex(int barIndex) {
+        for (SSystem system : systems)
+        {
+            if (system.containsBar(barIndex))
+                return system;
+        }
+        return null;
+    }
+
+    private float noteXPos(Note note) {
+        SSystem system = systemContainingBarIndex(note.startBarIndex);
+        if (system != null) {
+            try {
+                Component[] components = system.getComponentsForItem(note.item_h);
+                for (Component comp : components) {
+                    if (comp.type == Component.Type.notehead)
+                        return comp.rect.left + comp.rect.width() / 2; // centre of notehead
+                }
+            }
+            catch (ScoreException e){
+                System.out.println("failed getComponentsForItem");
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * align the vertical line cursor with the first of the notes in the List for which it can find an xpos
+     * @param notes a list of notes in a chord
+     * @param animationTime a hint for the scroll time in ms
+     */
+    public void moveNoteCursor(List<Note> notes, int animationTime)
+    {
+        for (Note note : notes)
+        {
+            int barIndex = note.startBarIndex;
+            if (note.start >= 0) // ignore cross-bar tied notes
+            {
+
+                float xpos = noteXPos(note);
+                if (xpos > 0) {
+                    setCursorAtBar(barIndex, xpos, animationTime);
+                    return; // we only need one notehead in the chord to move the cursor to
+                }
+            }
+        }
     }
 
     /**
@@ -208,12 +403,14 @@ public class ScoreView extends LinearLayout {
                     Log.w("sscore", "layout error:" + e);
                 }
             }
-            new Handler(Looper.getMainLooper()).post(new Runnable(){
+            if (ScoreView.this.layoutCompletionHandler != null) {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
 
-                public void run() {
-                    ScoreView.this.layoutCompletionHandler.run();
-                }
-            });
+                    public void run() {
+                        ScoreView.this.layoutCompletionHandler.run();
+                    }
+                });
+            }
         }
 
         private boolean aborting;
@@ -221,7 +418,7 @@ public class ScoreView extends LinearLayout {
     }
 
     /**
-     *  abort the layout and notify completion on the main thread through the Runnable argument
+     *  abort the layout and notify completion of abort on the main thread through the Runnable argument
      *
      * @param thenRunnable run() is executed when abort is complete on the main thread
      */
@@ -326,12 +523,7 @@ public class ScoreView extends LinearLayout {
         });
     }
 
-    /**
-     *  spacing between fingers during a pinch gesture
-     *
-     * @param event the MotionEvent from onTouchEvent
-     * @return the finger spacing
-     */
+    /** spacing between fingers during a pinch gesture */
     private float fingerSpacing(MotionEvent event)
     {
         float x = event.getX(0) - event.getX(1);
@@ -341,6 +533,9 @@ public class ScoreView extends LinearLayout {
 
     /**
      * called from the system for a touch notification
+     *
+     * @param event the touch event
+     * @return true if handled
      */
     public boolean onTouchEvent (MotionEvent event)
     {
@@ -377,4 +572,19 @@ public class ScoreView extends LinearLayout {
         }
         return false;
     }
+
+    private SScore score;
+    private AssetManager assetManager;
+    private int displayDPI;
+    private SSystemList systems;
+    private float magnification;
+    private LayoutThread layoutThread;
+    private float screenHeight;
+    private boolean isAbortingLayout = false;
+    private float startPinchFingerSpacing;
+    private boolean isZooming = false;
+    private ArrayList<SystemView> views = new ArrayList<SystemView>();
+    private ZoomNotification zoomNotify;
+    private TapNotification tapNotify;
+    private Runnable layoutCompletionHandler;
 }

@@ -9,8 +9,6 @@ import java.util.Iterator;
 
 /**
  * Iterator type which iterates through a Bar returning each Note in sequence
- * 
- * @author J.Sutton Dolphin Computing
  */
 public class NoteIterator implements Iterator<Note>
 {
@@ -32,15 +30,17 @@ public class NoteIterator implements Iterator<Note>
 		throw new UnsupportedOperationException();
 	}
 	
-	private NoteIterator(long nativePointer, int bidx, int pidx, int nidx)
+	private NoteIterator(long nativePointer, int bidx, boolean ci, int pidx, int nidx)
 	{
 		this.nativePointer = nativePointer;
 		this.bidx = bidx;
+        this.ci = ci;
 		this.pidx = pidx;
 		this.nidx = nidx;
 	}
 	private final long nativePointer;
 	private final int bidx;
+    private final boolean ci;
 	private final int pidx;
 	private int nidx;
 }

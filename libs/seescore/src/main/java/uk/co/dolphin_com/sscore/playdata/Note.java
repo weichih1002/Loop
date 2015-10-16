@@ -7,28 +7,27 @@ package uk.co.dolphin_com.sscore.playdata;
 
 /**
  * A note which contains all information required to play it
- * 
- * @author J.Sutton Dolphin Computing
  */
 public class Note
 {
 	/**
-	 * not a grace note
+	 * not grace note type
 	 */
 	public static final int Grace_No = 0;
 	
 	/**
-	 * an appoggiatura
+	 * appoggiatura grace type
 	 */
 	public static final int Grace_Appoggiatura = 1;
 	
 	/**
-	 * an acciaccatura
+	 * acciaccatura grace type
 	 */
 	public static final int Grace_Acciaccatura = 2;
 
 	/**
 	 * 60 = C4. 0 = unpitched (ie percussion or metronome)
+     * For the metronome part this is the beat index
 	 */
 	public final int midiPitch;
 	

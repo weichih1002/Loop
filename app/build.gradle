@@ -27,7 +27,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:22.0.0'
     compile project(':libs:seescore')
-    compile project(':libs:QuickAction')
     compile files('libs/jtransforms-2.4.jar')
     compile files('libs/xom-1.2.10.jar')
 }

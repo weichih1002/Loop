@@ -6,24 +6,22 @@
 package uk.co.dolphin_com.sscore;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import uk.co.dolphin_com.sscore.SSystem.BarRange;
 
 /**
  * A list of {@link SSystem}
- * 
- * @author J.Sutton Dolphin Computing
  */
-public class SSystemList
+public class SSystemList  implements Iterable<SSystem>
 {
 	/**
 	 * construct an empty SSystemList
-	 * @param score
 	 */
 	public SSystemList()
 	{}
-	
+
 	/**
 	 * Clear all {@link SSystem}s from the list
 	 */
@@ -106,4 +104,30 @@ public class SSystemList
 	}
 
 	List<SSystem> list = new ArrayList<SSystem>();
+
+    @Override
+    public Iterator<SSystem> iterator() {
+        return new Iterator<SSystem>()
+        {
+            private int index = 0;
+
+            @Override
+            public boolean hasNext() {
+                return index < list.size();
+            }
+
+            @Override
+            public SSystem next() {
+                SSystem rval = list.get(index);
+                ++index;
+                return rval;
+            }
+
+            @Override
+            public void remove() {
+
+            }
+
+        };
+    }
 }

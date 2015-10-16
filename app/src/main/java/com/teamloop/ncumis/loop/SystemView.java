@@ -1,6 +1,21 @@
+/**
+ * SeeScore For Android Sample App
+ * Dolphin Computing http://www.dolphin-com.co.uk
+ */
 package com.teamloop.ncumis.loop;
 
-
+import uk.co.dolphin_com.sscore.BarGroup;
+import uk.co.dolphin_com.sscore.Component;
+import uk.co.dolphin_com.sscore.CursorRect;
+import uk.co.dolphin_com.sscore.Item;
+import uk.co.dolphin_com.sscore.PartName;
+import uk.co.dolphin_com.sscore.Point;
+import uk.co.dolphin_com.sscore.RenderItem;
+import uk.co.dolphin_com.sscore.RenderItem.Colour;
+import uk.co.dolphin_com.sscore.SScore;
+import uk.co.dolphin_com.sscore.SSystem;
+import uk.co.dolphin_com.sscore.TimedItem;
+import uk.co.dolphin_com.sscore.ex.ScoreException;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Canvas;
@@ -12,26 +27,26 @@ import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
 
-import uk.co.dolphin_com.sscore.BarGroup;
-import uk.co.dolphin_com.sscore.Component;
-import uk.co.dolphin_com.sscore.CursorRect;
-import uk.co.dolphin_com.sscore.Item;
-import uk.co.dolphin_com.sscore.PartName;
-import uk.co.dolphin_com.sscore.Point;
-import uk.co.dolphin_com.sscore.RenderItem;
-import uk.co.dolphin_com.sscore.SScore;
-import uk.co.dolphin_com.sscore.SSystem;
-import uk.co.dolphin_com.sscore.TimedItem;
-import uk.co.dolphin_com.sscore.ex.ScoreException;
-
-
 /**
  * The SystemView is a {@link View} which displays a single {@link SSystem}.
  * <p>{@link ScoreView} manages layout and placement of these into a scrolling View to display the complete {@link SScore}
  */
 public class SystemView extends View {
 
-    static final boolean ShowBarCursorOnTap = false;
+    /**
+     * type of cursor
+     */
+    static enum CursorType
+    {
+        /** no cursor */
+        none,
+
+        /** vertical line cursor */
+        line,
+
+        /** rectangular cursor around bar */
+        box
+    }
 
     /**
      * construct the SystemView
@@ -41,12 +56,13 @@ public class SystemView extends View {
      * @param sys the system
      * @param am the AssetManager for fonts
      */
-    public SystemView(Context context, SScore score, SSystem sys, AssetManager am)
+    public SystemView(Context context, SScore score, SSystem sys, AssetManager am, ScoreView.TapNotification tn)
     {
         super(context);
         this.assetManager = am;
         this.system = sys;
         this.score = score;
+        this.tapNotify = tn;
         backgroundPaint = new Paint();
         backgroundPaint.setStyle(Paint.Style.FILL);
         backgroundPaint.setColor(0xFFFFFFFA);
@@ -62,8 +78,69 @@ public class SystemView extends View {
         this.drawItemRect = false;
         zoomingMag = 1;
         viewRect = new Rect();
-        isZooming = false;
-        tappedBarIndex = -1;
+    }
+
+    /**
+     * return the fractional position of the bar in the system for a pseudo smooth scroll
+     * @param barIndex the 0-based bar index
+     * @return the fractional position of the bar in the system (0 for leftmost, <1 for others)
+     */
+    public float fractionalScroll(int barIndex) {
+        SSystem.BarRange br = system.getBarRange();
+        return (float)(barIndex - br.startBarIndex) / br.numBars;
+    }
+
+    /**
+     *
+     * @param barIndex the 0-based bar index
+     * @return true if the bar is in this system
+     */
+    public boolean containsBar(int barIndex)
+    {
+        return system.containsBar(barIndex);
+    }
+
+    /**
+     * set the cursor at a given bar
+     * @param barIndex the 0-based bar index
+     * @param type the type of cursor (line or box)
+     * @return true if the bar is in this system
+     */
+    public boolean setCursorAtBar(int barIndex, CursorType type)
+    {
+        boolean rval = system.containsBar(barIndex);
+        if (rval) {
+            cursorBarIndex = barIndex;
+            cursorType = type;
+            cursor_xpos = 0; // line cursor is drawn at left of bar
+            invalidate();
+        } else if (cursorType != CursorType.none) {
+            cursorType = CursorType.none;
+            cursor_xpos = 0;
+            invalidate();
+        }
+        return rval;
+    }
+
+    /**
+     * set the cursor at a given bar with a given x position in the system
+     * @param barIndex the 0-based bar index
+     * @param xpos the x coordinate from the left of the system
+     * @return true if the bar is in this system
+     */
+    public boolean setCursorAtBar(int barIndex, float xpos)
+    {
+        boolean rval = system.containsBar(barIndex);
+        if (rval) {
+            cursorBarIndex = barIndex;
+            cursor_xpos = xpos;
+            cursorType = CursorType.line;
+            invalidate();
+        } else if (cursorType != CursorType.none) {
+            cursorType = CursorType.none;
+            invalidate();
+        }
+        return rval;
     }
 
     /** request a special colouring for a particular item in this System
@@ -77,7 +154,7 @@ public class SystemView extends View {
             renderItems = new RenderItem[1];
             int[] coloured_render = new int[1];
             coloured_render[0] = RenderItem.ColourRenderFlags_notehead;
-            renderItems[0] = new RenderItem(item_h, new RenderItem.Colour(1,0,0,1), coloured_render);
+            renderItems[0] = new RenderItem(item_h, new Colour(1,0,0,1), coloured_render);
         }
         else
         {
@@ -88,6 +165,8 @@ public class SystemView extends View {
 
     /**
      * called by android to measure this view
+     * @param widthMeasureSpec
+     * @param heightMeasureSpec
      */
     protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec)
     {
@@ -99,6 +178,7 @@ public class SystemView extends View {
 
     /**
      * called by android to draw the View
+     * @param canvas the canvas
      */
     protected void onDraw(Canvas canvas)
     {
@@ -125,19 +205,25 @@ public class SystemView extends View {
         {
             canvas.drawRect(tappedItemRect, tappedItemPaint);
         }
-        if (tappedBarIndex >= 0)
+        if (cursorType != CursorType.none && cursorBarIndex >= 0)
         {
-            CursorRect cr = system.getCursorRect(canvas, tappedBarIndex);
+            CursorRect cr = system.getCursorRect(canvas, cursorBarIndex);
             if (cr.barInSystem)
             {
-                canvas.drawRect(cr.rect, barRectPaint);
+                if (cursorType == CursorType.box)
+                    canvas.drawRect(cr.rect, barRectPaint);
+                else if (cursorType == CursorType.line) {
+                    if (cursor_xpos > 0)
+                        canvas.drawLine(cursor_xpos, cr.rect.top, cursor_xpos, cr.rect.top + cr.rect.height(), barRectPaint);
+                    else
+                        canvas.drawLine(cr.rect.left, cr.rect.top, cr.rect.left, cr.rect.top + cr.rect.height(), barRectPaint);
+                }
             }
         }
     }
 
     /**
      * called during active pinch-zooming. We just draw the same system magnified
-     *
      * @param zoom the magnification
      */
     void zooming(final float zoom)
@@ -155,83 +241,22 @@ public class SystemView extends View {
     }
 
     /**
-     * Sample touch handler which prints information about the touched item into the console
+     * send touch events to the tap handler
+     * NOTE: We really need to filter out the pinch zoom events and scroll events so these aren't seen as taps
      */
     public boolean onTouchEvent (MotionEvent event)
     {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN)
         {
             Point p = new Point(event.getX(), event.getY());
-            int partindex = system.getPartIndexForYPos(event.getY());
-            int barindex = system.getBarIndexForXPos(event.getX());
-            if (ShowBarCursorOnTap)
-            {
-                tappedBarIndex = barindex;
-                invalidate();
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable(){
-
-                    public void run() {
-                        tappedBarIndex = -1;
-                        drawItemRect = false;
-                        colourItem(0); // uncolour
-                        invalidate();
-                    }
-                }, 1000); // clear after 1s
-            }
+            int partIndex = system.getPartIndexForYPos(event.getY());
+            int barIndex = system.getBarIndexForXPos(event.getX());
             Component[] components;
             try {
                 components = system.hitTest(p);
-                for (Component comp : components)
-                {
-                    java.lang.System.out.println(comp.toString());
-                    tappedItemRect = comp.rect; // draw a rect around the item
-                    drawItemRect = true;
-                    colourItem(comp.item_h); // colour item red
-                    invalidate();
+                tapNotify.tap(system.index(), partIndex, barIndex, components);
 
-                    RectF comprect = system.getBoundsForItem(comp.item_h);
-                    java.lang.System.out.println("rect:" + comprect);
-                    Component[] itemComponents = system.getComponentsForItem(comp.item_h);
-                    if (itemComponents.length > 0)
-                    {
-                        java.lang.System.out.println(" composed of:");
-                        for (Component icomp : itemComponents)
-                        {
-                            java.lang.System.out.println("  " + icomp.toString());
-                            RectF icomprect = system.getBoundsForItem(icomp.item_h);
-                            java.lang.System.out.println("  rect:" + icomprect);
-                        }
-                    }
-                    TimedItem ti = score.getItemForHandle(partindex, barindex, comp.item_h);
-                    java.lang.System.out.println(" item:" + ti);
-                }
             } catch (ScoreException e) {
-                java.lang.System.out.println(" exception:" + e.toString());
-            }
-
-            PartName pname = score.getPartNameForPart(partindex);
-            java.lang.System.out.println(" part:" + pname.name + " (" + pname.abbrev + ") bar:" + score.getBarNumberForIndex(barindex));
-            try
-            {
-                BarGroup bg = score.getBarContents( partindex,  barindex);
-                for (Item item : bg.items)
-                {
-                    // if we have the contents-detail licence we can get detailed info
-                    try
-                    {
-                        TimedItem timed_item = score.getItemForHandle( partindex, barindex, item.item_h);
-                        if (timed_item != null)
-                            System.out.println(timed_item.toString());
-                        else
-                            System.out.println(item.toString());
-                    }
-                    catch (ScoreException e){ // no licence - just print undetailed item
-                        System.out.println(item.toString());
-                    }
-                }
-            }
-            catch (ScoreException e)
-            {
                 java.lang.System.out.println(" exception:" + e.toString());
             }
         }
@@ -251,6 +276,9 @@ public class SystemView extends View {
     private float zoomingMag;
     private RenderItem[] renderItems;
     private Rect viewRect;
-    private boolean isZooming;
-    private int tappedBarIndex;
+    private boolean isZooming = false;
+    private int cursorBarIndex;
+    private CursorType cursorType = CursorType.none;
+    private float cursor_xpos = 0;
+    private ScoreView.TapNotification tapNotify;
 }

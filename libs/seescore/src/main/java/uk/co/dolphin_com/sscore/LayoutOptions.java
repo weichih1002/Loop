@@ -31,7 +31,7 @@ public class LayoutOptions {
 	 */
 	public LayoutOptions()
 	{
-		this.hidePartNames = true;
+		this.hidePartNames = false;
 		this.hideBarNumbers = false;
 		this.simplifyHarmonyEnharmonicSpelling = false;		
 	}

@@ -8,9 +8,6 @@ package uk.co.dolphin_com.sscore;
 
 /**
  * Define the full/abbreviated name for a part
- * 
- * @author J.Sutton Dolphin Computing
- *
  */
 public class PartName
 {

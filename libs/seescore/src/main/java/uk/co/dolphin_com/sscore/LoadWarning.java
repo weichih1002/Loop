@@ -7,8 +7,6 @@ package uk.co.dolphin_com.sscore;
 
 /**
  * Define a warning about any problem discovered during load
- * 
- * @author J.Sutton Dolphin Computing
  */
 public class LoadWarning {
 

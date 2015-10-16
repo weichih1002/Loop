@@ -40,7 +40,11 @@ public class SSystem {
 		public final int startBarIndex;
 		public final int numBars;
 
-		private BarRange(int s, int n) {
+        public boolean containsBar(int barIndex) {
+            return barIndex >= startBarIndex && barIndex < startBarIndex + numBars;
+        }
+
+        private BarRange(int s, int n) {
 			startBarIndex = s;
 			numBars = n;
 		}
@@ -52,6 +56,12 @@ public class SSystem {
 	 * @return the start bar and number of bars
 	 */
 	public native BarRange getBarRange();
+
+    public boolean containsBar(int barIndex)
+    {
+        return getBarRange().containsBar(barIndex);
+
+    }
 
 	/**
 	 * Get the bounding box of this system.
@@ -65,7 +75,6 @@ public class SSystem {
 	 * 
 	 * @param canvas the Canvas
 	 * @param am the AssetManager for loading fonts from assets
-	 * @param displayDPI the dots-per-inch value for the display
 	 * @param tl the top left point to draw this system in the Canvas
 	 * @param magnification the scale to draw at. NB This is normally 1, except during active zooming.
 	 * The overall magnification is set in sscore_layout
