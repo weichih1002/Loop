@@ -8,6 +8,10 @@ package uk.co.dolphin_com.sscore;
 import java.io.File;
 
 import uk.co.dolphin_com.sscore.ex.ScoreException;
+import uk.co.dolphin_com.sscore.playdata.BarBeats;
+import uk.co.dolphin_com.sscore.playdata.Tempo;
+import uk.co.dolphin_com.sscore.playdata.TimeSig;
+
 import android.content.res.AssetManager;
 import android.graphics.Canvas;
 

@@ -25,7 +25,7 @@ import uk.co.dolphin_com.sscore.Header;
 import uk.co.dolphin_com.sscore.LicenceKeyInstance;
 import uk.co.dolphin_com.sscore.LoadOptions;
 import uk.co.dolphin_com.sscore.SScore;
-import uk.co.dolphin_com.sscore.Tempo;
+import uk.co.dolphin_com.sscore.playdata.Tempo;
 import uk.co.dolphin_com.sscore.Version;
 import uk.co.dolphin_com.sscore.ex.ScoreException;
 import uk.co.dolphin_com.sscore.ex.XMLValidationException;
@@ -252,10 +252,10 @@ public class ScoreActivity extends Activity {
      */
     private void setPlayButtonImage(PlayPause playPause) {
         ImageButton playButton = (ImageButton) findViewById(R.id.play_btn);
-/*        if (playPause == PlayPause.pause)
-            playButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_media_pause));
+        if (playPause == PlayPause.pause)
+            playButton.setImageDrawable(getResources().getDrawable(R.drawable.pause));
         else
-            playButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_media_play));*/
+            playButton.setImageDrawable(getResources().getDrawable(R.drawable.play));
     }
 
     /** update the play-pause button image according to the player state */

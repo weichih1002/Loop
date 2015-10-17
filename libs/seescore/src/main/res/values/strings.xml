@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Loop</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="record_btn_description">click the button can start recording</string>
+    <string name="progressbar_body">樂譜製造中</string>
+</resources>
